@@ -73,7 +73,7 @@ const commands = {
   tech: () => {
     return `I have experience in building frontend applications with <span class='highlight svelte'>Svelte</span>, 
       <span class='highlight vue'>Vue</span> and <span class='highlight flutter'>Flutter</span> 
-      and backend applicaitons with <span class='highlight node'>Node.js</span>, <span class='highlight python'>Python</span>, 
+      and backend applications with <span class='highlight node'>Node.js</span>, <span class='highlight python'>Python</span>, 
       and a bit <span class='highlight java'>Java</span> and <span class='highlight cs'>C#</span>`;
   },
   what: () => {
