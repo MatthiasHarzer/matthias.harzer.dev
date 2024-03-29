@@ -36,30 +36,53 @@ export const onColorChange = (callback) => {
   };
 };
 
+/**
+ * Set the current rainbow color.
+ * @param {RGBColor} color
+ */
+export const setColor = (color) => {
+  rainbowEnabled = false;
+  notify(color);
+};
+
+/**
+ * Notify all callbacks with the given color.
+ * @param {boolean} enabled
+ */
+export const setRainbowEnabled = (enabled) => {
+  rainbowEnabled = enabled;
+
+  if (!enabled) {
+    currentColor = [100, 0, 255];
+    index = 0;
+  }
+};
+
 const notify = (color) => {
   callbacks.forEach((callback) => callback(color));
 };
 
 const saveMod = (m, n) => ((m % n) + n) % n;
 
-const current_color = [100, 0, 255];
+let rainbowEnabled = true;
+let currentColor = [100, 0, 255];
 let index = 0;
-let delta = 1;
 
 setInterval(() => {
-  const previous_index = saveMod(index - 1, 3);
+  if (!rainbowEnabled) return;
+  const previousIndex = saveMod(index - 1, 3);
 
-  if (current_color[index] >= 255) {
-    current_color[index] = 255;
-    current_color[previous_index] -= delta;
-    if (current_color[previous_index] <= 0) {
-      current_color[previous_index] = 0;
+  if (currentColor[index] >= 255) {
+    currentColor[index] = 255;
+    currentColor[previousIndex] -= 1;
+    if (currentColor[previousIndex] <= 0) {
+      currentColor[previousIndex] = 0;
       index = saveMod(index + 1, 3);
       delta *= -1;
     }
   } else {
-    current_color[index] += delta;
+    currentColor[index] += 1;
   }
 
-  notify(current_color);
+  notify(currentColor);
 }, 50);

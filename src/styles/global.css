@@ -26,7 +26,7 @@ body {
   border-radius: 10px;
   font-size: 1.5em;
 
-  box-shadow: 0 0 10px var(--glow-color);
+  box-shadow: 0 0 30px var(--glow-color);
 
   width: 100%;
   height: 100%;
@@ -123,6 +123,14 @@ body {
         }
       }
 
+      .set-color-button {
+        margin-right: 5px;
+
+        span:hover {
+          text-decoration: underline;
+        }
+      }
+
       .highlight {
         color: #fd63f8;
         /* font-weight: bold; */
@@ -157,7 +165,12 @@ body {
 
         &.error {
           color: #FF5555;
+        }
 
+        &.rainbow {
+          background: linear-gradient(90deg, #FF2C55, #FF6555, #FFAA55, #FFD955, #FFEE55, #D4FF55, #8CFF55, #55FF6E, #55FFB9, #55FFEA, #55F7FF, #55C4FF, #5581FF, #5557FF, #7A55FF, #B355FF, #E355FF, #FF55F0, #FF55B5, #FF558A, #FF5564, #FF5549);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
         }
       }
     }

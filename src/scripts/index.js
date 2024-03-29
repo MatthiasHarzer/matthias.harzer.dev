@@ -1,4 +1,9 @@
-import { onColorChange } from "./rainbow_color_provider.js";
+import {
+  onColorChange,
+  setColor,
+  setRainbowEnabled,
+} from "./rainbow_color_provider.js";
+import cssColors from "./css_colors.js";
 
 const terminal = document.querySelector("#terminal");
 const terminalInput = document.querySelector("#terminal-input");
@@ -53,9 +58,66 @@ const makeSuggestion = async (text) => {
   await clear(50);
 };
 
+/**
+ * @param {string} color
+ * @returns {[number, number, number] | null}
+ */
+const parseColor = (color) => {
+  const rgb = color.match(/rgb\((\d+), (\d+), (\d+)\)/);
+  if (rgb) return rgb.slice(1).map((c) => parseInt(c));
+
+  const hex = color.match(/#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  if (hex) return hex.slice(1).map((c) => parseInt(c, 16));
+
+  /**
+   *
+   * @param {string} hex
+   * @returns {[number, number, number]}
+   */
+  const hexToColor = (hex) => {
+    const normalized = hex.startsWith("#") ? hex.slice(1) : hex;
+    return [
+      parseInt(normalized.slice(0, 2), 16),
+      parseInt(normalized.slice(2, 4), 16),
+      parseInt(normalized.slice(4, 6), 16),
+    ];
+  };
+
+  const cssColor = cssColors[color.toLowerCase()];
+  if (cssColor) return hexToColor(cssColor);
+
+  return null;
+};
+
+/**
+ * @param {Function} func
+ * @returns {[string, boolean][]}
+ * @source https://stackoverflow.com/a/9924463
+ */
+const getParamNames = (func) => {
+  const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
+  const fnStr = func.toString().replace(STRIP_COMMENTS, "");
+  const paramsStr = fnStr
+    .slice(fnStr.indexOf("(") + 1, fnStr.indexOf(")"))
+    .trim();
+
+  if (paramsStr.length === 0) return [];
+
+  const params = paramsStr.split(",").map((p) => p.trim());
+
+  return params.map((p) => {
+    const parts = p.split("=");
+    const hasDefault = parts.length > 1;
+    return [parts[0], hasDefault];
+  });
+};
+
 let history = [];
 let whoamiCounter = 0;
 
+/**
+ * @type {Object.<string, (...args: string) => string | HTMLElement>}
+ */
 const commands = {
   who: () => {
     const birthday = new Date(2002, 11, 3);
@@ -107,6 +169,70 @@ const commands = {
   contact: () => {
     return "You can contact me via mail at <a href='mailto:matthias.harzer03@gmail.com'>matthias.harzer03@gmail.com</a>";
   },
+  setcolor(color) {
+    if (!color) {
+      return `<span class='highlight error'>Please provide a color using 'setcolor &lt;color&gt; | rainbow | help'</span>`;
+    }
+    const colorName = color.toLowerCase();
+
+    const colorToRgb = (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})'`;
+
+    if (colorName === "rainbow") {
+      setRainbowEnabled(true);
+      return "Rainbow mode <span class='highlight rainbow'>enabled</span>";
+    } else if (colorName === "help") {
+      const container = document.createElement("div");
+      const info = document.createElement("span");
+      info.innerHTML = "Available colors:";
+      container.appendChild(info);
+      container.appendChild(document.createElement("br"));
+
+      const cssColorsSorted = Object.keys(cssColors).sort((a, b) =>
+        cssColors[a].localeCompare(cssColors[b])
+      );
+
+      for (const color of cssColorsSorted) {
+        const colorElement = document.createElement("button");
+        colorElement.classList.add("clear", "set-color-button");
+        colorElement.innerHTML = `<span style='color: ${color}'>${color}</span>, `;
+        colorElement.addEventListener("click", () => {
+          terminalInput.value = `setcolor ${color}`;
+        });
+        container.appendChild(colorElement);
+      }
+      const customColorsElement = document.createElement("span");
+      customColorsElement.innerHTML = "#rrggbb, rgb(r, g, b), ";
+      container.appendChild(customColorsElement);
+
+      const rainbowElement = document.createElement("button");
+      rainbowElement.classList.add("clear", "set-color-button");
+      rainbowElement.innerHTML =
+        "<span class='highlight rainbow'>rainbow</span>";
+      rainbowElement.addEventListener("click", () => {
+        terminalInput.value = "setcolor rainbow";
+      });
+      container.appendChild(rainbowElement);
+
+      return container;
+      // const colors = Object.keys(cssColors)
+      //   .map((c) => `<span style='color: ${c}'>${c}</span>`)
+      //   .join(", ");
+      // return `Available colors:<br/> ${colors}, #rrggbb, rgb(r, g, b), rainbow`;
+    }
+
+    const colorParsed = parseColor(colorName);
+
+    if (!colorParsed) {
+      return `<span class='highlight error'>Invalid color:</span> ${colorName}`;
+    }
+
+    setColor(colorParsed);
+
+    return `Color changed to <span style='color: ${colorToRgb(
+      colorParsed
+    )}'>${colorName}</span>`;
+  },
+
   help: () => {
     const start = document.createElement("span");
     start.innerHTML = "Available commands: ";
@@ -120,9 +246,18 @@ const commands = {
 
     for (const command in commands) {
       const index = Object.keys(commands).indexOf(command);
+      const commandFn = commands[command];
+      const params = getParamNames(commandFn);
+      const paramsString = params.reduce((acc, [param, hasDefault], i) => {
+        if (hasDefault) {
+          return acc + ` [${param}]`;
+        } else {
+          return acc + ` &lt;${param}&gt;`;
+        }
+      }, "");
 
       const commandElement = document.createElement("button");
-      commandElement.innerHTML = `<span class='highlight'>${command}</span>`;
+      commandElement.innerHTML = `<span class='highlight'>${command}${paramsString}</span>`;
       commandElement.classList.add("clear", "command-button");
       commandElement.addEventListener("click", () => useCommand(command));
 
@@ -137,14 +272,20 @@ const commands = {
 const helpSuggestions = Object.keys(commands);
 let previouseSuggestion = "";
 
-const handleCommand = (command) => {
+const handleCommand = (_command) => {
+  const [command, ...args] = _command.split(" ");
+
   if (command in commands) {
-    return commands[command]();
+    return commands[command](args.join(" "));
   } else {
     return `<span class='highlight error'>Unknown command:</span> ${command}`;
   }
 };
 
+/**
+ * @param {string} command
+ * @param {string | HTMLElement} response
+ */
 const printResponse = (command, response) => {
   const prompt = document.createElement("span");
   prompt.innerText = ">_";
