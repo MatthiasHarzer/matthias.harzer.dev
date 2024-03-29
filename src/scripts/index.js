@@ -16,6 +16,7 @@ onColorChange((color) => {
 terminal.addEventListener("click", () => {
   terminalInput.focus();
 });
+terminalInput.focus();
 
 const makeSuggestion = async (text) => {
   previouseSuggestion = text;
@@ -53,7 +54,7 @@ const makeSuggestion = async (text) => {
 };
 
 let history = [];
-let whatCounter = 0;
+let whoamiCounter = 0;
 
 const commands = {
   who: () => {
@@ -76,15 +77,15 @@ const commands = {
       and backend applications with <span class='highlight node'>Node.js</span>, <span class='highlight python'>Python</span>, 
       and a bit <span class='highlight java'>Java</span> and <span class='highlight cs'>C#</span>`;
   },
-  what: () => {
-    whatCounter++;
-    if (whatCounter === 1) {
+  whoami: () => {
+    whoamiCounter++;
+    if (whoamiCounter === 1) {
       return "I'm a terminal, what do you expect me to do? Try again.";
-    } else if (whatCounter === 2) {
+    } else if (whoamiCounter === 2) {
       return "I already told you, I'm a terminal. Try something else.";
-    } else {
+    } else if (whoamiCounter === 3) {
       const cmds = Object.keys(commands).filter(
-        (c) => !["what", "help"].includes(c)
+        (c) => !["whoami", "help"].includes(c)
       );
       const randomCommand = cmds[Math.floor(Math.random() * cmds.length)];
       return (
@@ -92,6 +93,8 @@ const commands = {
         randomCommand +
         "</span> command?"
       );
+    } else {
+      return `Alright, alright. You can find my source code at <a href='https://github.com/MatthiasHarzer/matthias.harzer.dev' target='_blank'>github.com/MatthiasHarzer/matthias.harzer.dev</a>`;
     }
   },
   clear: () => {
@@ -105,9 +108,30 @@ const commands = {
     return "You can contact me via mail at <a href='mailto:matthias.harzer03@gmail.com'>matthias.harzer03@gmail.com</a>";
   },
   help: () => {
-    return `Available commands: ${Object.keys(commands)
-      .map((c) => `<span class='highlight'>${c}</span>`)
-      .join(", ")}`;
+    const start = document.createElement("span");
+    start.innerHTML = "Available commands: ";
+
+    const container = document.createElement("div");
+    container.appendChild(start);
+
+    const useCommand = (command) => {
+      terminalInput.value = command;
+    };
+
+    for (const command in commands) {
+      const index = Object.keys(commands).indexOf(command);
+
+      const commandElement = document.createElement("button");
+      commandElement.innerHTML = `<span class='highlight'>${command}</span>`;
+      commandElement.classList.add("clear", "command-button");
+      commandElement.addEventListener("click", () => useCommand(command));
+
+      if (index < Object.keys(commands).length - 1) {
+        commandElement.innerHTML += ", ";
+      }
+      container.appendChild(commandElement);
+    }
+    return container;
   },
 };
 const helpSuggestions = Object.keys(commands);
@@ -135,9 +159,18 @@ const printResponse = (command, response) => {
   promptLine.appendChild(prompt);
   promptLine.appendChild(input);
 
-  const responseElement = document.createElement("div");
+  const isHtmlElement = response instanceof HTMLElement;
+
+  let responseElement;
+
+  if (isHtmlElement) {
+    responseElement = response;
+  } else {
+    responseElement = document.createElement("div");
+    responseElement.innerHTML = response;
+  }
+
   responseElement.classList.add("response");
-  responseElement.innerHTML = response;
 
   terminalOutput.appendChild(promptLine);
   terminalOutput.appendChild(responseElement);

@@ -115,6 +115,14 @@ body {
         }
       }
 
+      .command-button {
+        margin-right: 5px;
+
+        span:hover {
+          text-decoration: underline;
+        }
+      }
+
       .highlight {
         color: #fd63f8;
         /* font-weight: bold; */
@@ -154,4 +162,16 @@ body {
       }
     }
   }
+}
+
+button.clear {
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+
 }
