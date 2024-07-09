@@ -167,7 +167,7 @@ const commands = {
     return "You can find my projects at <a href='https://github.com/MatthiasHarzer' target='_blank'>github.com/MatthiasHarzer</a>";
   },
   contact: () => {
-    return "You can contact me via mail at <a href='mailto:matthias.harzer03@gmail.com'>matthias.harzer03@gmail.com</a>";
+    return "You can contact me via mail at <a href='mailto:mail@matthiasharzer.de'>mail@matthiasharzer.de</a>";
   },
   setcolor(color) {
     if (!color) {
@@ -214,10 +214,6 @@ const commands = {
       container.appendChild(rainbowElement);
 
       return container;
-      // const colors = Object.keys(cssColors)
-      //   .map((c) => `<span style='color: ${c}'>${c}</span>`)
-      //   .join(", ");
-      // return `Available colors:<br/> ${colors}, #rrggbb, rgb(r, g, b), rainbow`;
     }
 
     const colorParsed = parseColor(colorName);
