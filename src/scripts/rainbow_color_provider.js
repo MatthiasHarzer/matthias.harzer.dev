@@ -78,7 +78,6 @@ setInterval(() => {
     if (currentColor[previousIndex] <= 0) {
       currentColor[previousIndex] = 0;
       index = saveMod(index + 1, 3);
-      delta *= -1;
     }
   } else {
     currentColor[index] += 1;

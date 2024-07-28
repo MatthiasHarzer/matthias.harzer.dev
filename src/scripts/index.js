@@ -19,24 +19,26 @@ onColorChange((color) => {
 });
 
 terminal.addEventListener("click", () => {
+  if (window.getSelection().toString()) return;
   terminalInput.focus();
 });
 terminalInput.focus();
 
 const makeSuggestion = async (text) => {
   previouseSuggestion = text;
-  const writeOut = (text, delay) =>
+  const writeOut = (text, baseDelay) =>
     new Promise((resolve) => {
-      let id = setInterval(() => {
+      const next = () => {
+        if (text.length === 0) {
+          resolve();
+          return;
+        }
         terminalInput.placeholder += text[0];
-
         text = text.slice(1);
 
-        if (text.length === 0 || terminalInput.value.length > 0) {
-          clearInterval(id);
-          resolve();
-        }
-      }, delay);
+        setTimeout(next, baseDelay + Math.random() * 50);
+      };
+      next();
     });
   const clear = (delay) =>
     new Promise((resolve) => {
@@ -53,8 +55,8 @@ const makeSuggestion = async (text) => {
       }, delay);
     });
 
-  await writeOut(text, 120 + Math.random() * 50);
-  await sleep(1500);
+  await writeOut(text, 120);
+  await sleep(2500);
   await clear(50);
 };
 
@@ -112,7 +114,6 @@ const getParamNames = (func) => {
   });
 };
 
-let history = [];
 let whoamiCounter = 0;
 
 /**
@@ -131,7 +132,7 @@ const commands = {
       age--;
     }
 
-    return `Hi, I'm <span class='highlight'>Matthias</span>, a ${age} y/o software engineering student from <span class='highlight'>Karlsruhe</span>, Germany. I'm passionate about <span class='highlight'>web development and design</span>. I'm currently working part time as a frontend developer at a small company.`;
+    return `Hi, I'm <span class='highlight'>Matthias</span>, a ${age} y/o software engineering student from <a href='https://www.google.com/maps/place/Karlsruhe/' class='highlight'>Karlsruhe</a>, Germany. I'm passionate about <span class='highlight'>web development and design</span>. I'm currently working part time as a frontend developer at a small company.`;
   },
   tech: () => {
     return `I have experience in building frontend applications with <span class='highlight svelte'>Svelte</span>, 
@@ -167,7 +168,7 @@ const commands = {
     return "You can find my projects at <a href='https://github.com/MatthiasHarzer' target='_blank'>github.com/MatthiasHarzer</a>";
   },
   contact: () => {
-    return "You can contact me via mail at <a href='mailto:mail@matthiasharzer.de'>mail@matthiasharzer.de</a>";
+    return "You can contact me via mail at <a href='mailto:mail@matthiasharzer.de' target='_blank'>mail@matthiasharzer.de</a>";
   },
   setcolor(color) {
     if (!color) {
@@ -244,7 +245,7 @@ const commands = {
       const index = Object.keys(commands).indexOf(command);
       const commandFn = commands[command];
       const params = getParamNames(commandFn);
-      const paramsString = params.reduce((acc, [param, hasDefault], i) => {
+      const paramsString = params.reduce((acc, [param, hasDefault]) => {
         if (hasDefault) {
           return acc + ` [${param}]`;
         } else {
@@ -289,10 +290,10 @@ const printResponse = (command, response) => {
 
   const input = document.createElement("span");
   input.innerHTML = command;
-  input.classList.add("input");
+  input.classList.add("command");
 
   const promptLine = document.createElement("div");
-  promptLine.classList.add("command-line");
+  promptLine.classList.add("command-line", "past");
   promptLine.appendChild(prompt);
   promptLine.appendChild(input);
 
