@@ -54,7 +54,7 @@ const loadCommands = (commands) => {
 
     textElement.innerText = commandName;
     commandElement.appendChild(textElement);
-    commandElement.classList.add("command");
+    commandElement.classList.add("command", commandName);
     commandElement.onclick = () => onCommandClick(commandName);
 
     return commandElement;
@@ -181,6 +181,57 @@ const checkAndMakeSuggestions = async () => {
   }
 };
 
+const registerCommandsListAnimation = () => {
+  const INTERACTION_TIMEOUT = 5000;
+  const ANIMATION_DELAY = 1000;
+  const ANIMATION_TIME = 200;
+  const timeouts = {};
+  let lastInteraction = 0;
+
+  commandsList.addEventListener("mousemove", () => {
+    lastInteraction = Date.now();
+    for(const key in timeouts){
+      clearTimeout(timeouts[key]);
+      const commandElement = commandsList.getElementsByClassName(key)[0];
+      commandElement.classList.remove("active");
+    }
+  });
+
+  const runAnimation = () => {
+
+    const now = Date.now();
+    const timeSinceInteraction = now - lastInteraction;
+    const commandNames = Object.keys(commands);
+
+    const animate = (commandName) => {
+      const timeSinceInteraction = Date.now() - lastInteraction;
+      if (timeSinceInteraction <= INTERACTION_TIMEOUT) return;
+      const commandElement = commandsList.getElementsByClassName(commandName)[0];
+      commandElement.classList.add("active");
+
+      timeouts[commandName] = setTimeout(() => {
+        commandElement.classList.remove("active");
+      }, ANIMATION_TIME * 1.5);
+    }
+
+    if(timeSinceInteraction > INTERACTION_TIMEOUT){
+      commandNames.forEach((commandName, index) => {
+        // console
+        setTimeout(() => animate(commandName), index * (ANIMATION_DELAY / 10));
+      });
+    }
+  }
+
+  setTimeout(()=>{
+
+    runAnimation();
+  }, 3500)
+
+  setInterval(runAnimation, 15000);
+
+}
+
 setInterval(checkAndMakeSuggestions, 15000);
 setTimeout(() => makeSuggestion("help"), 4000);
 loadCommands(commands);
+registerCommandsListAnimation();

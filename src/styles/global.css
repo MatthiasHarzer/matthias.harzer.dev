@@ -108,7 +108,7 @@ body {
           }
         }
 
-        &:hover {
+        &:hover, &.active {
           background-color: #44475a;
 
           span {
