@@ -7,6 +7,10 @@ const terminalInput = document.querySelector("#terminal-input");
 const terminalOutput = document.querySelector("#terminal-command-output");
 const commandsList = document.querySelector("#commands-list")
 
+const COMMANDS_LIST_INTERACTION_TIMEOUT = 5000;
+const COMMANDS_LIST_ANIMATION_DELAY = 1000;
+const COMMANDS_LIST_ANIMATION_TIME = 200;
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 onColorChange((color) => {
@@ -56,6 +60,10 @@ const loadCommands = (commands) => {
     commandElement.appendChild(textElement);
     commandElement.classList.add("command", commandName);
     commandElement.onclick = () => onCommandClick(commandName);
+    commandElement.addEventListener('mouseover', ()=>setTimeout(()=>{
+      commandElement.classList.add("active");
+      setTimeout(()=>commandElement.classList.remove("active"), COMMANDS_LIST_ANIMATION_TIME);
+    }))
 
     return commandElement;
   }
@@ -182,9 +190,6 @@ const checkAndMakeSuggestions = async () => {
 };
 
 const registerCommandsListAnimation = () => {
-  const INTERACTION_TIMEOUT = 5000;
-  const ANIMATION_DELAY = 1000;
-  const ANIMATION_TIME = 200;
   const timeouts = {};
   let lastInteraction = 0;
 
@@ -205,19 +210,19 @@ const registerCommandsListAnimation = () => {
 
     const animate = (commandName) => {
       const timeSinceInteraction = Date.now() - lastInteraction;
-      if (timeSinceInteraction <= INTERACTION_TIMEOUT) return;
+      if (timeSinceInteraction <= COMMANDS_LIST_INTERACTION_TIMEOUT) return;
       const commandElement = commandsList.getElementsByClassName(commandName)[0];
       commandElement.classList.add("active");
 
       timeouts[commandName] = setTimeout(() => {
         commandElement.classList.remove("active");
-      }, ANIMATION_TIME * 1.5);
+      }, COMMANDS_LIST_ANIMATION_TIME * 1.5);
     }
 
-    if(timeSinceInteraction > INTERACTION_TIMEOUT){
+    if(timeSinceInteraction > COMMANDS_LIST_INTERACTION_TIMEOUT){
       commandNames.forEach((commandName, index) => {
         // console
-        setTimeout(() => animate(commandName), index * (ANIMATION_DELAY / 10));
+        setTimeout(() => animate(commandName), index * (COMMANDS_LIST_ANIMATION_DELAY / 10));
       });
     }
   }
