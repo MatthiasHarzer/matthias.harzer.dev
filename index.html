@@ -2,39 +2,108 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>matthias.harzer.dev</title>
-  <link rel="stylesheet" href="./src/styles/global.css" />
+  <link rel="stylesheet" href="./src/styles/global.css"/>
 </head>
 
 <body>
-  <div id="terminal">
-    <div class="header">
-      <img class="icon" src="./assets/mh_sh_icon.svg" alt=">_MH" />
-      <div class="title">
-        <span>matthias.harzer.dev - Terminal</span>
+<div id="terminal">
+  <div class="header">
+    <img class="icon" src="./assets/mh_sh_icon.svg" alt=">_MH"/>
+    <div class="title">
+      <span>matthias.harzer.dev - Terminal</span>
+    </div>
+  </div>
+  <div class="body">
+    <div class="terminal-commands discrete-scrollbar">
+      <div class="commands-header">
+        Commands
+      </div>
+      <div id="commands-list">
+        <div class="command">
+          <span>help</span>
+        </div>
+        <div class="command">
+          <span>about</span>
+        </div>
+        <div class="command">
+          <span>skills</span>
+        </div>
+        <div class="command">
+          <span>projects</span>
+        </div>
+        <div class="command">
+          <span>contact</span>
+        </div>
+        <div class="command">
+          <span>help</span>
+        </div>
+        <div class="command">
+          <span>about</span>
+        </div>
+        <div class="command">
+          <span>skills</span>
+        </div>
+        <div class="command">
+          <span>projects</span>
+        </div>
+        <div class="command">
+          <span>contact</span>
+        </div>
+        <div class="command">
+          <span>help</span>
+        </div>
+        <div class="command">
+          <span>about</span>
+        </div>
+        <div class="command">
+          <span>skills</span>
+        </div>
+        <div class="command">
+          <span>projects</span>
+        </div>
+        <div class="command">
+          <span>contact</span>
+        </div>
+        <div class="command">
+          <span>help</span>
+        </div>
+        <div class="command">
+          <span>about</span>
+        </div>
+        <div class="command">
+          <span>skills</span>
+        </div>
+        <div class="command">
+          <span>projects</span>
+        </div>
+        <div class="command">
+          <span>contact</span>
+        </div>
       </div>
     </div>
-    <div class="body">
+    <div class="terminal-content">
       <div class="history" id="terminal-command-output"></div>
       <div class="command-line input-line">
         <label for="terminal-input">
           <span class="prompt">>_</span>
         </label>
-        <input 
-          type="text" 
-          id="terminal-input" 
-          autocomplete="off" 
-          autocorrect="off" 
-          autocapitalize="off"
-          spellcheck="false" 
+        <input
+            type="text"
+            id="terminal-input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
         />
       </div>
     </div>
   </div>
-  <script type="module" src="./src/scripts/index.js"></script>
-  <script type="module" src="./src/scripts/favicon_setter.js"></script>
+</div>
+<script type="module" src="./src/scripts/index.js"></script>
+<script type="module" src="./src/scripts/favicon_setter.js"></script>
 </body>
 
 </html>

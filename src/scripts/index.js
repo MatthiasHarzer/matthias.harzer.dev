@@ -1,11 +1,11 @@
-import {
-  onColorChange,
-} from "./rainbow_color_provider.js";
-import {commands} from "./commands";
+import {onColorChange,} from "./rainbow_color_provider.js";
+import {commands} from "./commands.js";
+import {getFunctionParameters} from "./util.js";
 
 const terminal = document.querySelector("#terminal");
 const terminalInput = document.querySelector("#terminal-input");
 const terminalOutput = document.querySelector("#terminal-command-output");
+const commandsList = document.querySelector("#commands-list")
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -21,6 +21,52 @@ terminal.addEventListener("click", () => {
   terminalInput.focus();
 });
 terminalInput.focus();
+
+/**
+ * @param {Commands} commands
+ */
+const loadCommands = (commands) => {
+  /**
+   * @param {string} commandName
+   */
+  const onCommandClick = (commandName) => {
+    const commandFn = commands[commandName];
+    const commandArgs = getFunctionParameters(commandFn);
+    const nonOptionalArgs = commandArgs.filter(([_, hasDefault]) => !hasDefault);
+
+    if (nonOptionalArgs.length > 0) {
+      const commandArgsText = nonOptionalArgs.map(([name]) => `<${name}>`).join(" ");
+      terminalInput.value = `${commandName} ${commandArgsText}`;
+      terminalInput.focus();
+      terminalInput.setSelectionRange(commandName.length + 1, terminalInput.value.length);
+
+
+    } else {
+      onCommandEntered(commandName);
+    }
+  }
+  /**
+   * @param {string} commandName
+   */
+  const buildCommandElement = (commandName) => {
+    const textElement = document.createElement("span");
+    const commandElement = document.createElement("div");
+
+    textElement.innerText = commandName;
+    commandElement.appendChild(textElement);
+    commandElement.classList.add("command");
+    commandElement.onclick = () => onCommandClick(commandName);
+
+    return commandElement;
+  }
+
+  commandsList.innerHTML = "";
+  for (const commandName in commands) {
+    const commandElement = buildCommandElement(commandName);
+    commandsList.appendChild(commandElement);
+  }
+
+}
 
 const makeSuggestion = async (text) => {
   previousSuggestion = text;
@@ -130,10 +176,11 @@ const checkAndMakeSuggestions = async () => {
   if (!hasValue && !hasPlaceholder) {
     const suggestion = helpSuggestions.filter((s) => s !== previousSuggestion)[
       Math.floor(Math.random() * helpSuggestions.length)
-    ];
+      ];
     await makeSuggestion(suggestion);
   }
 };
 
 setInterval(checkAndMakeSuggestions, 15000);
 setTimeout(() => makeSuggestion("help"), 4000);
+loadCommands(commands);

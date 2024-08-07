@@ -3,6 +3,7 @@ import {
   setRainbowEnabled,
 } from "./rainbow_color_provider.js";
 import cssColors from "./css_colors.js";
+import {getFunctionParameters} from "./util.js";
 
 let whoamiCounter = 0;
 const terminalInput = document.querySelector("#terminal-input");
@@ -40,30 +41,11 @@ const parseColor = (color) => {
 };
 
 /**
- * @param {Function} func
- * @returns {[string, boolean][]}
- * @source https://stackoverflow.com/a/9924463
+ * @typedef {Record.<string, (...args: string) => string | HTMLElement>} Commands
  */
-const getParamNames = (func) => {
-  const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
-  const fnStr = func.toString().replace(STRIP_COMMENTS, "");
-  const paramsStr = fnStr
-      .slice(fnStr.indexOf("(") + 1, fnStr.indexOf(")"))
-      .trim();
-
-  if (paramsStr.length === 0) return [];
-
-  const params = paramsStr.split(",").map((p) => p.trim());
-
-  return params.map((p) => {
-    const parts = p.split("=");
-    const hasDefault = parts.length > 1;
-    return [parts[0], hasDefault];
-  });
-};
 
 /**
- * @type {Object.<string, (...args: string) => string | HTMLElement>}
+ * @type {Commands}
  */
 export const commands = {
   who: () => {
@@ -190,7 +172,7 @@ export const commands = {
     for (const command in commands) {
       const index = Object.keys(commands).indexOf(command);
       const commandFn = commands[command];
-      const params = getParamNames(commandFn);
+      const params = getFunctionParameters(commandFn);
       const paramsString = params.reduce((acc, [param, hasDefault]) => {
         if (hasDefault) {
           return acc + ` [${param}]`;
