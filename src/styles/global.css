@@ -18,7 +18,8 @@
 }
 
 body {
-  --border-color: #44475a;
+  /*--border-color: #44475a;*/
+  --border-color: white;
   background: rgb(32, 33, 36);
   background: linear-gradient(
     180deg,
@@ -34,13 +35,15 @@ body {
 }
 
 #terminal {
+  position: relative;
+  z-index: 1;
   --glow-color: #6400FFFF;
 
   background-color: #1e1e1e;
   color: rgb(218, 218, 218);
   font-family: VT323, monospace;
   border: 4px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 1px;
   font-size: 1.5em;
 
   box-shadow: 0 0 30px var(--glow-color);
@@ -293,4 +296,38 @@ a:after {
 
 a:hover:after {
   width: 100%;
+}
+
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0.5;
+}
+.cursor-trail{
+  position: absolute;
+  pointer-events: none;
+  overflow: hidden;
+  color: #50fa7b;
+  font-family: VT323, monospace;
+  animation: cursor-trail-blink 1s forwards;
+}
+
+@keyframes cursor-trail-blink {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+
 }
