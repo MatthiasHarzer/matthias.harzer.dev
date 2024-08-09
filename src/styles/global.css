@@ -18,8 +18,7 @@
 }
 
 body {
-  /*--border-color: #44475a;*/
-  --border-color: white;
+  --border-color: #44475a;
   background: rgb(32, 33, 36);
   background: linear-gradient(
     180deg,
@@ -111,7 +110,7 @@ body {
           }
         }
 
-        &:hover, &.active {
+        &:hover, &.active, &.animation-active {
           background-color: #44475a;
 
           span {
@@ -329,5 +328,4 @@ a:hover:after {
   100% {
     opacity: 0;
   }
-
 }

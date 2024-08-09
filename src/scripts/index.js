@@ -81,7 +81,7 @@ const makeSuggestion = async (text) => {
   const writeOut = (text, baseDelay) =>
     new Promise((resolve) => {
       const next = () => {
-        if (text.length === 0) {
+        if (!text || text.length === 0) {
           resolve();
           return;
         }
@@ -193,14 +193,14 @@ const registerCommandsListAnimation = () => {
   const timeouts = {};
   let lastInteraction = 0;
 
-  commandsList.addEventListener("mousemove", () => {
+  const onInteraction = () => {
     lastInteraction = Date.now();
     for(const key in timeouts){
       clearTimeout(timeouts[key]);
       const commandElement = commandsList.getElementsByClassName(key)[0];
-      commandElement.classList.remove("active");
+      commandElement.classList.remove("animation-active");
     }
-  });
+  }
 
   const runAnimation = () => {
 
@@ -212,10 +212,10 @@ const registerCommandsListAnimation = () => {
       const timeSinceInteraction = Date.now() - lastInteraction;
       if (timeSinceInteraction <= COMMANDS_LIST_INTERACTION_TIMEOUT) return;
       const commandElement = commandsList.getElementsByClassName(commandName)[0];
-      commandElement.classList.add("active");
+      commandElement.classList.add("animation-active");
 
       timeouts[commandName] = setTimeout(() => {
-        commandElement.classList.remove("active");
+        commandElement.classList.remove("animation-active");
       }, COMMANDS_LIST_ANIMATION_TIME * 1.5);
     }
 
@@ -233,7 +233,8 @@ const registerCommandsListAnimation = () => {
   }, 3500)
 
   setInterval(runAnimation, 15000);
-
+  terminal.addEventListener("mousemove", onInteraction);
+  terminal.addEventListener("keydown", onInteraction);
 }
 
 setInterval(checkAndMakeSuggestions, 15000);
