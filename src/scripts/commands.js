@@ -49,7 +49,7 @@ const parseColor = (color) => {
  */
 export const commands = {
   who: () => {
-    const birthday = new Date(2002, 11, 3);
+    const birthday = new Date(2002, 10, 3);
     const now = new Date();
     let age = now.getFullYear() - birthday.getFullYear();
     if (
