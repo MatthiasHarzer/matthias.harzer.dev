@@ -63,9 +63,9 @@ export const commands = {
     return `Hi, I'm <span class='highlight'>Matthias</span>, a ${age} y/o software engineering student from <a href='https://www.google.com/maps/place/Karlsruhe/' class='highlight'>Karlsruhe</a>, Germany. I'm passionate about <span class='highlight'>web development and design</span>. I'm currently working part time as a frontend developer at a small company.`;
   },
   tech: () => {
-    return `I have experience in building frontend applications with <span class='highlight svelte'>Svelte</span>, 
+    return `I have experience in building frontend applications with <span class='highlight lit'>Lit</span>, <span class='highlight svelte'>Svelte</span>, 
       <span class='highlight vue'>Vue</span> and <span class='highlight flutter'>Flutter</span> 
-      and backend applications with <span class='highlight node'>Node.js</span>, <span class='highlight python'>Python</span>, 
+      and backend applications with <span class='highlight go'>Go</span>, <span class='highlight node'>Node.js</span>, <span class='highlight python'>Python</span>, 
       and a bit <span class='highlight java'>Java</span> and <span class='highlight cs'>C#</span>`;
   },
   whoami: () => {

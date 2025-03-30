@@ -187,6 +187,10 @@ body {
         .set-color-button {
           margin-right: 5px;
 
+          span:not(.rainbow) {
+            text-shadow: 1px 1px 1px rgb(79, 79, 82, 0.5);
+          }
+
           span:hover {
             text-decoration: underline;
           }
@@ -194,6 +198,14 @@ body {
 
         .highlight {
           color: #fd63f8;
+
+          &.lit {
+            color: #4c64ff;
+          }
+
+          &.go {
+            color: #00add8;
+          }
 
           &.svelte {
             color: #f96743;

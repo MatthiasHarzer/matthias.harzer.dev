@@ -203,7 +203,6 @@ const registerCommandsListAnimation = () => {
   }
 
   const runAnimation = () => {
-
     const now = Date.now();
     const timeSinceInteraction = now - lastInteraction;
     const commandNames = Object.keys(commands);
@@ -221,7 +220,6 @@ const registerCommandsListAnimation = () => {
 
     if(timeSinceInteraction > COMMANDS_LIST_INTERACTION_TIMEOUT){
       commandNames.forEach((commandName, index) => {
-        // console
         setTimeout(() => animate(commandName), index * (COMMANDS_LIST_ANIMATION_DELAY / 10));
       });
     }
@@ -240,4 +238,4 @@ const registerCommandsListAnimation = () => {
 setInterval(checkAndMakeSuggestions, 15000);
 setTimeout(() => makeSuggestion("help"), 4000);
 loadCommands(commands);
-registerCommandsListAnimation();
+// registerCommandsListAnimation();
