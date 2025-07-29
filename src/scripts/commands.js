@@ -64,10 +64,10 @@ export const commands = {
       I'm passionate about <span class='highlight'>web development and design</span>.`;
   },
   tech: () => {
-    return `I have experience in building frontend applications with <span class='highlight lit'>Lit</span>, <span class='highlight svelte'>Svelte</span>, 
-      <span class='highlight vue'>Vue</span> and <span class='highlight flutter'>Flutter</span> 
-      and backend applications with <span class='highlight go'>Go</span>, <span class='highlight node'>Node.js</span>, <span class='highlight python'>Python</span>, 
-      and a bit <span class='highlight java'>Java</span> and <span class='highlight cs'>C#</span>`;
+    return `I have experience in building frontend applications with <a href='https://lit.dev/' class='highlight lit'>Lit</a>, <a href='https://svelte.dev/' class='highlight svelte'>Svelte</a>, 
+      <a href='https://vuejs.org/' class='highlight vue'>Vue</a> and <a href='https://flutter.dev/' class='highlight flutter'>Flutter</a> 
+      and backend applications with <a href='https://go.dev/' class='highlight go'>Go</a>, <a href='https://nodejs.org/' class='highlight node'>Node.js</a>, <a href='https://www.python.org/' class='highlight python'>Python</a>, 
+      and a bit <a href='https://www.java.com/' class='highlight java'>Java</a> and <a href='https://dotnet.microsoft.com/en-us/languages/csharp/' class='highlight cs'>C#</a>`;
   },
   whoami: () => {
     whoamiCounter++;
