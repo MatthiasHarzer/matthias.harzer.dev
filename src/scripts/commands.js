@@ -60,7 +60,8 @@ export const commands = {
       age--;
     }
 
-    return `Hi, I'm <span class='highlight'>Matthias</span>, a ${age} y/o software engineering student from <a href='https://www.google.com/maps/place/Karlsruhe/' class='highlight'>Karlsruhe</a>, Germany. I'm passionate about <span class='highlight'>web development and design</span>. I'm currently working part time as a frontend developer at a small company.`;
+    return `Hi, I'm <span class='highlight'>Matthias</span>, a ${age} y/o software engineering student from <a href='https://www.google.com/maps/place/Karlsruhe/' class='highlight'>Karlsruhe</a>, Germany. 
+      I'm passionate about <span class='highlight'>web development and design</span>.`;
   },
   tech: () => {
     return `I have experience in building frontend applications with <span class='highlight lit'>Lit</span>, <span class='highlight svelte'>Svelte</span>, 
