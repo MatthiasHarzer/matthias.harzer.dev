@@ -173,15 +173,15 @@ body {
 
         a {
           color: #bd93f9;
-          text-decoration: none;
+          /* text-decoration: none; */
         }
 
         .command-button {
           margin-right: 5px;
 
-          span:hover {
+          /* span:hover {
             text-decoration: underline;
-          }
+          } */
         }
 
         .set-color-button {
@@ -269,13 +269,33 @@ body {
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
+
+          &.hka {
+            color: #d72305;
+          }
+
+          &.thenativeweb {
+            color: #dd0099;
+          }
+
+          &.eventql, &.eventsourcingdb {
+            color: #25a55a;
+          }
+
+          &.smartreadinessindicator {
+            color: #1d88cc
+          }
+
+          &.kit, &.tmb {
+            color: #009682;
+          }
         }
       }
     }
   }
 }
 
-button.clear {
+button.clear, button.highlight {
   background-color: transparent;
   border: none;
   color: inherit;
@@ -286,28 +306,21 @@ button.clear {
   margin: 0;
 }
 
-a {
+a, button.highlight {
   position: relative;
 
-  &:hover {
-    text-decoration: none !important;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0% 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 2px;
+  transition: background-size .3s;
+
+  &:hover, &:focus {
+    background-size: 100% 2px;
   }
 }
 
-a:after {
-  content: '';
-  width: 0;
-  height: 2px;
-  background: currentColor;
-  transition: width 0.3s;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-
-a:hover:after {
-  width: 100%;
-}
 
 .background {
   position: absolute;
@@ -325,6 +338,23 @@ a:hover:after {
   color: #50fa7b;
   font-family: VT323, monospace;
   animation: cursor-trail-blink 1s forwards;
+}
+
+ul.career-list {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  li {
+    margin-bottom: 0.8em;
+  }
+}
+
+.career-dates {
+  color: #757575;
+  font-weight: lighter;
+}
+
+.career-passage {
+  margin: 0.3em 0;
 }
 
 @keyframes cursor-trail-blink {
