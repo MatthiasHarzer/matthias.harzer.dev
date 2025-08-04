@@ -4,21 +4,21 @@
  * @source https://stackoverflow.com/a/9924463 (modified)
  */
 export const getFunctionParameters = (func) => {
-    const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
-    const fnStr = func.toString().replace(STRIP_COMMENTS, "");
-    const paramsStr = fnStr
-        .slice(fnStr.indexOf("(") + 1, fnStr.indexOf(")"))
-        .trim();
+	const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
+	const fnStr = func.toString().replace(STRIP_COMMENTS, "");
+	const paramsStr = fnStr
+		.slice(fnStr.indexOf("(") + 1, fnStr.indexOf(")"))
+		.trim();
 
-    if (paramsStr.length === 0) return [];
+	if (paramsStr.length === 0) return [];
 
-    const params = paramsStr.split(",").map((p) => p.trim());
+	const params = paramsStr.split(",").map((p) => p.trim());
 
-    return params.map((p) => {
-        const parts = p.split("=");
-        const hasDefault = parts.length > 1;
-        return [parts[0], hasDefault];
-    });
+	return params.map((p) => {
+		const parts = p.split("=");
+		const hasDefault = parts.length > 1;
+		return [parts[0], hasDefault];
+	});
 };
 
 /**
@@ -28,5 +28,13 @@ export const getFunctionParameters = (func) => {
  * @return {number}
  */
 export const roundToNearest = (value, nearest) => {
-    return Math.round(value / nearest) * nearest;
+	return Math.round(value / nearest) * nearest;
+}
+
+export const escapeHtml = (str) => {
+	return str.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }

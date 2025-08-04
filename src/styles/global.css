@@ -357,6 +357,19 @@ ul.career-list {
   margin: 0.3em 0;
 }
 
+.pixel-emoji {
+  width: 0.75em;
+  height: 0.75em;
+  vertical-align: middle;
+  padding-bottom: 0.15em;
+  
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+}
+
 @keyframes cursor-trail-blink {
   0% {
     opacity: 0;

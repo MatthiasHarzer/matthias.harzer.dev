@@ -37,7 +37,9 @@ const loadCommands = (commands) => {
    * @param {string} commandName
    */
   const onCommandClick = (commandName) => {
-    const commandFn = commands[commandName];
+    const command = commands[commandName];
+    if (!command) return;
+    const commandFn = command.fn;
     const commandArgs = getFunctionParameters(commandFn);
     const nonOptionalArgs = commandArgs.filter(([_, hasDefault]) => !hasDefault);
 
@@ -73,6 +75,8 @@ const loadCommands = (commands) => {
 
   commandsList.innerHTML = "";
   for (const commandName in commands) {
+    if (commands[commandName]?.isHidden) continue;
+    
     const commandElement = buildCommandElement(commandName);
     commandsList.appendChild(commandElement);
   }
@@ -122,7 +126,7 @@ const handleCommand = (_command) => {
   const [command, ...args] = _command.split(" ");
 
   if (command in commands) {
-    return commands[command](args.join(" "));
+    return commands[command].fn(args.join(" "));
   } else {
     return `<span class='highlight error'>Unknown command:</span> ${command}`;
   }
@@ -138,7 +142,7 @@ const printResponse = (command, response) => {
   prompt.classList.add("prompt");
 
   const input = document.createElement("span");
-  input.innerHTML = command;
+  input.innerText = command;
   input.classList.add("command");
 
   const promptLine = document.createElement("div");
@@ -171,7 +175,7 @@ const onCommandEntered = async (command) => {
   history.push(command);
   historyIndex = -1;
 
-  const response = handleCommand(command);
+  const response = handleCommand(command.toLowerCase());
   if (response) {
     printResponse(command, response);
   }
