@@ -11,6 +11,9 @@ const COMMANDS_LIST_INTERACTION_TIMEOUT = 5000;
 const COMMANDS_LIST_ANIMATION_DELAY = 1000;
 const COMMANDS_LIST_ANIMATION_TIME = 200;
 
+const history = [];
+let historyIndex = -1;
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 onColorChange((color) => {
@@ -162,6 +165,12 @@ const printResponse = (command, response) => {
 };
 
 const onCommandEntered = async (command) => {
+  command = command.trim();
+  if (command.length === 0) return;
+
+  history.push(command);
+  historyIndex = -1;
+
   const response = handleCommand(command);
   if (response) {
     printResponse(command, response);
@@ -174,6 +183,26 @@ terminalInput.addEventListener("keydown", async (e) => {
     terminalInput.value = "";
     terminalInput.placeholder = "";
     onCommandEntered(command);
+  } else if (e.key === "ArrowUp") {
+    if (historyIndex < history.length - 1) {
+      historyIndex++;
+      terminalInput.value = history[history.length - 1 - historyIndex];
+      requestAnimationFrame(()=>{
+        terminalInput.setSelectionRange(terminalInput.value.length, terminalInput.value.length);
+      })
+    }
+  } else if (e.key === "ArrowDown") {
+    if (historyIndex > 0) {
+      historyIndex--;
+      terminalInput.value = history[history.length - 1 - historyIndex];
+      requestAnimationFrame(()=>{
+        terminalInput.setSelectionRange(terminalInput.value.length, terminalInput.value.length);
+      })
+    } else if (historyIndex === 0) {
+      historyIndex--;
+      terminalInput.value = "";
+      terminalInput.placeholder = "";
+    }
   }
 });
 
