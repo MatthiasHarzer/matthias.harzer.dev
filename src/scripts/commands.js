@@ -40,6 +40,8 @@ const parseColor = (color) => {
 	return null;
 };
 
+/** */
+
 /**
  * @typedef Command
  * @property {(args: string[]) => string | HTMLElement} fn
@@ -81,15 +83,15 @@ export const commands = {
 	},
 	career: {
 		fn: () => {
-			return `I'm a student at <a href='https://www.h-ka.de/' class='highlight hka'>Hochschule Karlsruhe</a> and have been active as a working student:
+			return `I'm a student at the <a href='https://www.h-ka.de/' class='highlight hka'>Hochschule Karlsruhe</a> and have been active as a working student:
 						<ul class='career-list'>
 							<li>
 								<span class='career-title'>
 									<a href='https://thenativeweb.io/' class='highlight thenativeweb'>the native web GmbH</a>
-									<span class='career-dates'>– May 2024 - Jul 2025</span>
+									<span class='career-dates'>(May 2024 - Jul 2025)</span>
 								</span>
 								<p class='career-passage'>
-									Back- & frontend development using <a href='https://lit.dev/' class='highlight lit'>Lit</a> and 
+									Working student for back- & frontend development using <a href='https://lit.dev/' class='highlight lit'>Lit</a> and 
 									<a href='https://go.dev/' class='highlight go'>Go</a> with a focus on Event Sourcing, CQRS and Domain-Driven Design.
 								</p>
 								<p class='career-passage'>
@@ -99,8 +101,11 @@ export const commands = {
 							<li>
 								<span class='career-title'>
 									<a href='https://www.kit.edu/' class='highlight kit'>Karlsruhe Institute of Technology</a>
-									<span class='career-dates'>– Jun 2023 - Feb 2024</span>
+									<span class='career-dates'>(Jun 2023 - Feb 2024)</span>
 								</span>
+								<p class='career-passage'>
+									Student assistant at the <a href='https://www.tmb.kit.edu/' class='highlight tmb'>Institute of Technology and Management in Construction</a>.
+								</p>
 								<p class='career-passage'>
 									Development of the <a href='https://smartreadinessindicator.com/' class='highlight smartreadinessindicator'>Smart Readiness Indicator</a> web platform using <a href='https://vuejs.org/' class='highlight vue'>Vue</a> and <a href='https://nodejs.org/' class='highlight node'>Node.js</a>.
 								</p>
