@@ -95,7 +95,7 @@ export const commands = {
 									<a href='https://go.dev/' class='highlight go'>Go</a> with a focus on Event Sourcing, CQRS and Domain-Driven Design.
 								</p>
 								<p class='career-passage'>
-									I was the primary engineer behind <a href='https://docs.eventsourcingdb.io/reference/eventql/' class='highlight eventql'>EventQL</a>, a query language built into the <a href='https://eventsourcingdb.io/' class='highlight eventsourcingdb'>EventSourcingDB</a>.
+									I was the primary engineer behind <a href='https://docs.eventsourcingdb.io/reference/eventql/' class='highlight eventql'>EventQL</a>, a custom built query language of the <a href='https://eventsourcingdb.io/' class='highlight eventsourcingdb'>EventSourcingDB</a>.
 								</p>
 							</li>
 							<li>

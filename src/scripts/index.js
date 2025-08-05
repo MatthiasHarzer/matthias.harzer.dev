@@ -119,7 +119,7 @@ const makeSuggestion = async (text) => {
   await clear(50);
 };
 
-const helpSuggestions = Object.keys(commands);
+const helpSuggestions = Object.keys(commands).filter((c) => !commands[c].noHelp);
 let previousSuggestion = "";
 
 const handleCommand = (_command) => {
