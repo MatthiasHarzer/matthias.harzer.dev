@@ -83,7 +83,7 @@ export const commands = {
 	},
 	career: {
 		fn: () => {
-			return `I'm a student at the <a href='https://www.h-ka.de/' class='highlight hka'>Hochschule Karlsruhe</a> and have been active as a working student:
+			return `I'm studying at the <a href='https://www.h-ka.de/' class='highlight hka'>Hochschule Karlsruhe</a> and have been active as a working student:
 						<ul class='career-list'>
 							<li>
 								<span class='career-title'>
