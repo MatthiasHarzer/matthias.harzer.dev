@@ -171,6 +171,11 @@ body {
       .response {
         margin: 5px 0;
 
+        .char {
+          animation: char-appear 0s forwards;
+          opacity: 0;
+        }
+
         a {
           color: #bd93f9;
           /* text-decoration: none; */
@@ -394,5 +399,14 @@ ul.career-list {
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes char-appear {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

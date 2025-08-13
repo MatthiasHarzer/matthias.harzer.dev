@@ -1,6 +1,7 @@
-import {onColorChange,} from "./rainbow_color_provider.js";
-import {commands} from "./commands.js";
-import {getFunctionParameters} from "./util.js";
+import { onColorChange, } from "./rainbow_color_provider.js";
+import { typeWrite } from "./type_write.js";
+import { commands } from "./commands.js";
+import { getFunctionParameters } from "./util.js";
 
 const terminal = document.querySelector("#terminal");
 const terminalInput = document.querySelector("#terminal-input");
@@ -8,8 +9,10 @@ const terminalOutput = document.querySelector("#terminal-command-output");
 const commandsList = document.querySelector("#commands-list")
 
 const COMMANDS_LIST_INTERACTION_TIMEOUT = 5000;
-const COMMANDS_LIST_ANIMATION_DELAY = 1000;
-const COMMANDS_LIST_ANIMATION_TIME = 200;
+const COMMANDS_LIST_ANIMATION_DELAY = 70;
+const COMMANDS_LIST_ANIMATION_TIME = 150;
+
+const TYPEWRITE_SPEED = 250; // chars per second
 
 const history = [];
 let historyIndex = -1;
@@ -65,9 +68,9 @@ const loadCommands = (commands) => {
     commandElement.appendChild(textElement);
     commandElement.classList.add("command", commandName);
     commandElement.onclick = () => onCommandClick(commandName);
-    commandElement.addEventListener('mouseover', ()=>setTimeout(()=>{
+    commandElement.addEventListener('mouseover', () => setTimeout(() => {
       commandElement.classList.add("active");
-      setTimeout(()=>commandElement.classList.remove("active"), COMMANDS_LIST_ANIMATION_TIME);
+      setTimeout(() => commandElement.classList.remove("active"), COMMANDS_LIST_ANIMATION_TIME);
     }))
 
     return commandElement;
@@ -76,7 +79,7 @@ const loadCommands = (commands) => {
   commandsList.innerHTML = "";
   for (const commandName in commands) {
     if (commands[commandName]?.isHidden) continue;
-    
+
     const commandElement = buildCommandElement(commandName);
     commandsList.appendChild(commandElement);
   }
@@ -132,6 +135,9 @@ const handleCommand = (_command) => {
   }
 };
 
+
+
+
 /**
  * @param {string} command
  * @param {string | HTMLElement} response
@@ -152,20 +158,22 @@ const printResponse = (command, response) => {
 
   const isHtmlElement = response instanceof HTMLElement;
 
-  let responseElement;
+  const responseElement = document.createElement("div");
+  responseElement.classList.add("response");
 
   if (isHtmlElement) {
-    responseElement = response;
+    responseElement.replaceChildren(response);
   } else {
-    responseElement = document.createElement("div");
     responseElement.innerHTML = response;
   }
 
-  responseElement.classList.add("response");
+  typeWrite(responseElement, TYPEWRITE_SPEED)
 
   terminalOutput.appendChild(promptLine);
   terminalOutput.appendChild(responseElement);
-  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  requestAnimationFrame(() => {
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  })
 };
 
 const onCommandEntered = async (command) => {
@@ -191,7 +199,7 @@ terminalInput.addEventListener("keydown", async (e) => {
     if (historyIndex < history.length - 1) {
       historyIndex++;
       terminalInput.value = history[history.length - 1 - historyIndex];
-      requestAnimationFrame(()=>{
+      requestAnimationFrame(() => {
         terminalInput.setSelectionRange(terminalInput.value.length, terminalInput.value.length);
       })
     }
@@ -199,7 +207,7 @@ terminalInput.addEventListener("keydown", async (e) => {
     if (historyIndex > 0) {
       historyIndex--;
       terminalInput.value = history[history.length - 1 - historyIndex];
-      requestAnimationFrame(()=>{
+      requestAnimationFrame(() => {
         terminalInput.setSelectionRange(terminalInput.value.length, terminalInput.value.length);
       })
     } else if (historyIndex === 0) {
@@ -217,7 +225,7 @@ const checkAndMakeSuggestions = async () => {
   if (!hasValue && !hasPlaceholder) {
     const suggestion = helpSuggestions.filter((s) => s !== previousSuggestion)[
       Math.floor(Math.random() * helpSuggestions.length)
-      ];
+    ];
     await makeSuggestion(suggestion);
   }
 };
@@ -225,10 +233,12 @@ const checkAndMakeSuggestions = async () => {
 const registerCommandsListAnimation = () => {
   const timeouts = {};
   let lastInteraction = 0;
+  
+  const filteredCommands = Object.keys(commands).filter((c) => !commands[c].isHidden);
 
   const onInteraction = () => {
     lastInteraction = Date.now();
-    for(const key in timeouts){
+    for (const key in timeouts) {
       clearTimeout(timeouts[key]);
       const commandElement = commandsList.getElementsByClassName(key)[0];
       commandElement.classList.remove("animation-active");
@@ -238,12 +248,13 @@ const registerCommandsListAnimation = () => {
   const runAnimation = () => {
     const now = Date.now();
     const timeSinceInteraction = now - lastInteraction;
-    const commandNames = Object.keys(commands);
 
     const animate = (commandName) => {
       const timeSinceInteraction = Date.now() - lastInteraction;
       if (timeSinceInteraction <= COMMANDS_LIST_INTERACTION_TIMEOUT) return;
       const commandElement = commandsList.getElementsByClassName(commandName)[0];
+      if (!commandElement) return;
+
       commandElement.classList.add("animation-active");
 
       timeouts[commandName] = setTimeout(() => {
@@ -251,15 +262,14 @@ const registerCommandsListAnimation = () => {
       }, COMMANDS_LIST_ANIMATION_TIME * 1.5);
     }
 
-    if(timeSinceInteraction > COMMANDS_LIST_INTERACTION_TIMEOUT){
-      commandNames.forEach((commandName, index) => {
-        setTimeout(() => animate(commandName), index * (COMMANDS_LIST_ANIMATION_DELAY / 10));
+    if (timeSinceInteraction > COMMANDS_LIST_INTERACTION_TIMEOUT) {
+      filteredCommands.forEach((commandName, index) => {
+        setTimeout(() => animate(commandName), index * (COMMANDS_LIST_ANIMATION_DELAY));
       });
     }
   }
 
-  setTimeout(()=>{
-
+  setTimeout(() => {
     runAnimation();
   }, 3500)
 

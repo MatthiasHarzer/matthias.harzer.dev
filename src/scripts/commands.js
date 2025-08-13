@@ -40,7 +40,20 @@ const parseColor = (color) => {
 	return null;
 };
 
-/** */
+const html = (...args) => {
+	const container = document.createElement("span");
+	for (const arg of args) {
+		if (typeof arg === "string") {
+			container.appendChild(document.createTextNode(arg));
+		} else if (arg instanceof HTMLElement) {
+			container.appendChild(arg);
+		} else {
+			console.warn("Unsupported type for html function:", arg);
+		}
+	}
+
+	return container;
+};
 
 /**
  * @typedef Command
@@ -78,7 +91,7 @@ export const commands = {
 			return `I have experience in building frontend applications with <a href='https://lit.dev/' class='highlight lit'>Lit</a>, <a href='https://svelte.dev/' class='highlight svelte'>Svelte</a>, 
 						<a href='https://vuejs.org/' class='highlight vue'>Vue</a> and <a href='https://flutter.dev/' class='highlight flutter'>Flutter</a> 
 						and backend applications with <a href='https://go.dev/' class='highlight go'>Go</a>, <a href='https://nodejs.org/' class='highlight node'>Node.js</a>, <a href='https://www.python.org/' class='highlight python'>Python</a>, 
-						and a bit <a href='https://www.java.com/' class='highlight java'>Java</a> and <a href='https://dotnet.microsoft.com/en-us/languages/csharp/' class='highlight cs'>C#</a>`;
+						and a bit <a href='https://www.java.com/' class='highlight java'>Java</a> and <a href='https://dotnet.microsoft.com/en-us/languages/csharp/' class='highlight cs'>C#</a>.`;
 		},
 	},
 	career: {
@@ -110,14 +123,13 @@ export const commands = {
 									Development of the <a href='https://smartreadinessindicator.com/' class='highlight smartreadinessindicator'>Smart Readiness Indicator</a> web platform using <a href='https://vuejs.org/' class='highlight vue'>Vue</a> and <a href='https://nodejs.org/' class='highlight node'>Node.js</a>.
 								</p>
 							</li>
-						</ul>
-						
+						</ul>		
 	`
 		},
 	},
 	github: {
 		fn: () => {
-			return "You can find my projects at <a href='https://github.com/MatthiasHarzer' target='_blank'>github.com/MatthiasHarzer</a>";
+			return "You can find my projects at <a href='https://github.com/MatthiasHarzer' target='_blank'>github.com/MatthiasHarzer</a>.";
 		},
 	},
 	contact: {
@@ -128,6 +140,7 @@ export const commands = {
 	clear: {
 		fn: () => {
 			terminalOutput.innerHTML = "";
+			terminalInput.value = "";
 			return null;
 		},
 	},
@@ -202,17 +215,18 @@ export const commands = {
 			} else if (whoamiCounter === 2) {
 				return "I already told you, I'm a terminal. Try something else.";
 			} else if (whoamiCounter === 3) {
-				const filtered_commands = Object.keys(commands).filter(
+				const filtered_commands = Object.keys(commands).filter((c) => !commands[c].noHelp).filter(
 					(c) => !["whoami", "help"].includes(c)
 				);
 				const randomCommand = filtered_commands[Math.floor(Math.random() * filtered_commands.length)];
-				return (
-					"Are you looking for the <span class='highlight'>" +
-					randomCommand +
-					"</span> command?"
+
+				return html(
+					"Are you looking for the ",
+					createInlineCommandSuggestion(randomCommand),
+					" command?"
 				);
 			} else {
-				return `Alright, alright. You can find my source code at <a href='https://github.com/MatthiasHarzer/matthias.harzer.dev' target='_blank'>github.com/MatthiasHarzer/matthias.harzer.dev</a>`;
+				return `Alright, alright. You can find my source code at <a href='https://github.com/MatthiasHarzer/matthias.harzer.dev' target='_blank'>github.com/MatthiasHarzer/matthias.harzer.dev</a>.`;
 			}
 		},
 	},
@@ -220,7 +234,7 @@ export const commands = {
 		isHidden: true,
 		noHelp: true,
 		fn: () => {
-			return `You found the secret command <img class='pixel-emoji' src='/assets/celeb.webp'>, but I haven't implemented it yet.`
+			return `You found the secret command <img class='pixel-emoji' src='/assets/celeb.webp'>, but I haven't implemented it yet :/`
 		}
 	},
 
@@ -241,27 +255,43 @@ export const commands = {
 				const command = commands[commandName];
 				if (command.noHelp) continue;
 
-				const commandFn = command.fn;
-				const params = getFunctionParameters(commandFn);
-				const paramsString = params.reduce((acc, [param, hasDefault]) => {
-					if (hasDefault) {
-						return acc + ` [${param}]`;
-					} else {
-						return acc + ` &lt;${param}&gt;`;
-					}
-				}, "");
-
-				const commandElement = document.createElement("button");
-				commandElement.innerHTML = `<button class='highlight'>${commandName}${paramsString}</button>`;
-				commandElement.classList.add("clear", "command-button");
-				commandElement.addEventListener("click", () => useCommand(commandName));
+				const commandElement = createInlineCommandSuggestion(commandName);
+				container.appendChild(commandElement);
 
 				if (index < Object.keys(commands).length - 1) {
-					commandElement.innerHTML += ", ";
+					container.appendChild(document.createTextNode(", "));
 				}
-				container.appendChild(commandElement);
 			}
 			return container;
 		},
 	},
 };
+
+const createInlineCommandSuggestion = (commandName) => {
+	const useCommand = () => {
+		console.log("Using command:", commandName);
+		terminalInput.value = commandName;
+	};
+
+	const command = commands[commandName];
+	if (!command) return null;
+
+	const commandFn = command.fn;
+	const params = getFunctionParameters(commandFn);
+	const paramsString = params.reduce((acc, [param, hasDefault]) => {
+		if (hasDefault) {
+			return acc + ` [${param}]`;
+		} else {
+			return acc + ` <${param}>`;
+		}
+	}, "");
+
+	const commandElement = document.createElement("button");
+	commandElement.innerText = `${commandName}${paramsString}`;
+	commandElement.classList.add("clear",  "highlight");
+	commandElement.addEventListener("click", useCommand);
+
+	console.log("Command Element", commandElement);
+
+	return commandElement;
+}
