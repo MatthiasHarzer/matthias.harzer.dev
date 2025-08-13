@@ -55,9 +55,50 @@ const html = (...args) => {
 	return container;
 };
 
+const colorHelp = () => {
+	const container = document.createElement("div");
+	const info = document.createElement("span");
+	info.innerHTML = "Available colors:";
+	container.appendChild(info);
+	container.appendChild(document.createElement("br"));
+
+	const cssColorsSorted = Object.keys(cssColors).sort((a, b) =>
+		cssColors[a].localeCompare(cssColors[b])
+	);
+
+	for (const color of cssColorsSorted) {
+		const colorElement = document.createElement("button");
+		colorElement.classList.add("clear", "set-color-button", "highlight", "color-repr");
+		colorElement.style.setProperty("--color", cssColors[color]);
+		colorElement.innerText = color;
+		colorElement.addEventListener("click", () => {
+			terminalInput.value = `setcolor ${color}`;
+		});
+		container.appendChild(colorElement);
+		container.appendChild(document.createTextNode(", "));
+	}
+	const customColorsElement = document.createElement("span");
+	customColorsElement.innerHTML = "#rrggbb, rgb(r, g, b), ";
+	container.appendChild(customColorsElement);
+
+	const rainbowElement = document.createElement("button");
+	rainbowElement.classList.add("clear", "set-color-button");
+	rainbowElement.innerHTML =
+		"<span class='highlight rainbow'>rainbow</span>";
+	rainbowElement.addEventListener("click", () => {
+		terminalInput.value = "setcolor rainbow";
+	});
+	container.appendChild(rainbowElement);
+
+	return container;
+}
+
+/**
+ * @typedef {string | HTMLElement | [string | HTMLElement, boolean]} CommandResponse
+ */
 /**
  * @typedef Command
- * @property {(args: string[]) => string | HTMLElement} fn
+ * @property {(args: string[]) => CommandResponse} fn
  * @property {boolean} [isHidden]
  * @property {boolean} [noHelp]
  */
@@ -159,39 +200,7 @@ export const commands = {
 				setRainbowEnabled(true);
 				return "Rainbow mode <span class='highlight rainbow'>enabled</span>";
 			} else if (colorName === "help") {
-				const container = document.createElement("div");
-				const info = document.createElement("span");
-				info.innerHTML = "Available colors:";
-				container.appendChild(info);
-				container.appendChild(document.createElement("br"));
-
-				const cssColorsSorted = Object.keys(cssColors).sort((a, b) =>
-					cssColors[a].localeCompare(cssColors[b])
-				);
-
-				for (const color of cssColorsSorted) {
-					const colorElement = document.createElement("button");
-					colorElement.classList.add("clear", "set-color-button");
-					colorElement.innerHTML = `<span style='color: ${color}'>${color}</span>, `;
-					colorElement.addEventListener("click", () => {
-						terminalInput.value = `setcolor ${color}`;
-					});
-					container.appendChild(colorElement);
-				}
-				const customColorsElement = document.createElement("span");
-				customColorsElement.innerHTML = "#rrggbb, rgb(r, g, b), ";
-				container.appendChild(customColorsElement);
-
-				const rainbowElement = document.createElement("button");
-				rainbowElement.classList.add("clear", "set-color-button");
-				rainbowElement.innerHTML =
-					"<span class='highlight rainbow'>rainbow</span>";
-				rainbowElement.addEventListener("click", () => {
-					terminalInput.value = "setcolor rainbow";
-				});
-				container.appendChild(rainbowElement);
-
-				return container;
+				return [colorHelp(), false];
 			}
 
 			const colorParsed = parseColor(colorName);
@@ -202,7 +211,7 @@ export const commands = {
 
 			setColor(colorParsed);
 
-			return `Color changed to <span style='color: ${colorToRgb(
+			return `Color changed to <span class='color-repr' style='--color: ${colorToRgb(
 				colorParsed
 			)}'>${colorName}</span>`;
 		},
@@ -269,7 +278,6 @@ export const commands = {
 
 const createInlineCommandSuggestion = (commandName) => {
 	const useCommand = () => {
-		console.log("Using command:", commandName);
 		terminalInput.value = commandName;
 	};
 
@@ -288,10 +296,8 @@ const createInlineCommandSuggestion = (commandName) => {
 
 	const commandElement = document.createElement("button");
 	commandElement.innerText = `${commandName}${paramsString}`;
-	commandElement.classList.add("clear",  "highlight");
+	commandElement.classList.add("clear", "highlight");
 	commandElement.addEventListener("click", useCommand);
-
-	console.log("Command Element", commandElement);
 
 	return commandElement;
 }

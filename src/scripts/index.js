@@ -135,14 +135,45 @@ const handleCommand = (_command) => {
   }
 };
 
+/**
+ * @param {string | HTMLElement} content
+ * @returns {HTMLElement}
+ */
+const parseResponseContent = (content) => {
+  if (typeof content === "string") {
+    const element = document.createElement("span");
+    element.innerHTML = content;
+    return element;
+  } else if (content instanceof HTMLElement) {
+    return content;
+  } else {
+    console.warn("Unknown content type:", content);
+    return document.createElement("span");
+  }
+}
 
+/**
+ * @param {CommandResponse} response 
+ * @returns {[HTMLElement, boolean]}
+ */
+const parseResponse = (response) => {
+  if (Array.isArray(response)) {
+    if (response.length !== 2) {
+      console.warn("Invalid response array length:", response.length);
+      return [document.createElement("span"), false];
+    }
 
+    const [content, withAnimation] = response;
+    return [parseResponseContent(content), withAnimation];
+  }
+  return [parseResponseContent(response), true];
+}
 
 /**
  * @param {string} command
- * @param {string | HTMLElement} response
+ * @param {CommandResponse} response
  */
-const printResponse = (command, response) => {
+const printResponse = (command, _response) => {
   const prompt = document.createElement("span");
   prompt.innerText = ">_";
   prompt.classList.add("prompt");
@@ -156,6 +187,8 @@ const printResponse = (command, response) => {
   promptLine.appendChild(prompt);
   promptLine.appendChild(input);
 
+  const [response, withAnimation] = parseResponse(_response);
+
   const isHtmlElement = response instanceof HTMLElement;
 
   const responseElement = document.createElement("div");
@@ -167,7 +200,9 @@ const printResponse = (command, response) => {
     responseElement.innerHTML = response;
   }
 
-  typeWrite(responseElement, TYPEWRITE_SPEED)
+  if (withAnimation) {
+    typeWrite(responseElement, TYPEWRITE_SPEED)
+  }
 
   terminalOutput.appendChild(promptLine);
   terminalOutput.appendChild(responseElement);
