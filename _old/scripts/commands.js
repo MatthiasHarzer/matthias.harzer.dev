@@ -1,32 +1,29 @@
-import {
-	setColor,
-	setRainbowEnabled,
-} from "./rainbow_color_provider.js";
-import cssColors from "./css_colors.js";
-import { escapeHtml, getFunctionParameters } from "./util.js";
+import cssColors from './css_colors.js';
+import { setColor, setRainbowEnabled } from './rainbow_color_provider.js';
+import { escapeHtml, getFunctionParameters } from './util.js';
 
 let whoamiCounter = 0;
-const terminalInput = document.querySelector("#terminal-input");
-const terminalOutput = document.querySelector("#terminal-command-output");
+const terminalInput = document.querySelector('#terminal-input');
+const terminalOutput = document.querySelector('#terminal-command-output');
 
 /**
  * @param {string} color
  * @returns {[number, number, number] | null}
  */
-const parseColor = (color) => {
+const parseColor = color => {
 	const rgb = color.match(/rgb\((\d+), (\d+), (\d+)\)/);
-	if (rgb) return rgb.slice(1).map((c) => parseInt(c));
+	if (rgb) return rgb.slice(1).map(c => parseInt(c));
 
 	const hex = color.match(/#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
-	if (hex) return hex.slice(1).map((c) => parseInt(c, 16));
+	if (hex) return hex.slice(1).map(c => parseInt(c, 16));
 
 	/**
 	 *
 	 * @param {string} hex
 	 * @returns {[number, number, number]}
 	 */
-	const hexToColor = (hex) => {
-		const normalized = hex.startsWith("#") ? hex.slice(1) : hex;
+	const hexToColor = hex => {
+		const normalized = hex.startsWith('#') ? hex.slice(1) : hex;
 		return [
 			parseInt(normalized.slice(0, 2), 16),
 			parseInt(normalized.slice(2, 4), 16),
@@ -41,14 +38,14 @@ const parseColor = (color) => {
 };
 
 const html = (...args) => {
-	const container = document.createElement("span");
+	const container = document.createElement('span');
 	for (const arg of args) {
-		if (typeof arg === "string") {
+		if (typeof arg === 'string') {
 			container.appendChild(document.createTextNode(arg));
 		} else if (arg instanceof HTMLElement) {
 			container.appendChild(arg);
 		} else {
-			console.warn("Unsupported type for html function:", arg);
+			console.warn('Unsupported type for html function:', arg);
 		}
 	}
 
@@ -56,42 +53,41 @@ const html = (...args) => {
 };
 
 const colorHelp = () => {
-	const container = document.createElement("div");
-	const info = document.createElement("span");
-	info.innerHTML = "Available colors:";
+	const container = document.createElement('div');
+	const info = document.createElement('span');
+	info.innerHTML = 'Available colors:';
 	container.appendChild(info);
-	container.appendChild(document.createElement("br"));
+	container.appendChild(document.createElement('br'));
 
 	const cssColorsSorted = Object.keys(cssColors).sort((a, b) =>
-		cssColors[a].localeCompare(cssColors[b])
+		cssColors[a].localeCompare(cssColors[b]),
 	);
 
 	for (const color of cssColorsSorted) {
-		const colorElement = document.createElement("button");
-		colorElement.classList.add("clear", "set-color-button", "highlight", "color-repr");
-		colorElement.style.setProperty("--color", cssColors[color]);
+		const colorElement = document.createElement('button');
+		colorElement.classList.add('clear', 'set-color-button', 'highlight', 'color-repr');
+		colorElement.style.setProperty('--color', cssColors[color]);
 		colorElement.innerText = color;
-		colorElement.addEventListener("click", () => {
+		colorElement.addEventListener('click', () => {
 			terminalInput.value = `setcolor ${color}`;
 		});
 		container.appendChild(colorElement);
-		container.appendChild(document.createTextNode(", "));
+		container.appendChild(document.createTextNode(', '));
 	}
-	const customColorsElement = document.createElement("span");
-	customColorsElement.innerHTML = "#rrggbb, rgb(r, g, b), ";
+	const customColorsElement = document.createElement('span');
+	customColorsElement.innerHTML = '#rrggbb, rgb(r, g, b), ';
 	container.appendChild(customColorsElement);
 
-	const rainbowElement = document.createElement("button");
-	rainbowElement.classList.add("clear", "set-color-button");
-	rainbowElement.innerHTML =
-		"<span class='highlight rainbow'>rainbow</span>";
-	rainbowElement.addEventListener("click", () => {
-		terminalInput.value = "setcolor rainbow";
+	const rainbowElement = document.createElement('button');
+	rainbowElement.classList.add('clear', 'set-color-button');
+	rainbowElement.innerHTML = "<span class='highlight rainbow'>rainbow</span>";
+	rainbowElement.addEventListener('click', () => {
+		terminalInput.value = 'setcolor rainbow';
 	});
 	container.appendChild(rainbowElement);
 
 	return container;
-}
+};
 
 /**
  * @typedef {string | HTMLElement | [string | HTMLElement, boolean]} CommandResponse
@@ -117,8 +113,7 @@ export const commands = {
 			let age = now.getFullYear() - birthday.getFullYear();
 			if (
 				now.getMonth() < birthday.getMonth() ||
-				(now.getMonth() === birthday.getMonth() &&
-					now.getDate() < birthday.getDate())
+				(now.getMonth() === birthday.getMonth() && now.getDate() < birthday.getDate())
 			) {
 				age--;
 			}
@@ -165,7 +160,7 @@ export const commands = {
 								</p>
 							</li>
 						</ul>		
-	`
+	`;
 		},
 	},
 	github: {
@@ -180,26 +175,26 @@ export const commands = {
 	},
 	clear: {
 		fn: () => {
-			terminalOutput.innerHTML = "";
-			terminalInput.value = "";
+			terminalOutput.innerHTML = '';
+			terminalInput.value = '';
 			return null;
 		},
 	},
 	setcolor: {
 		isHidden: true,
-		fn: (color) => {
+		fn: color => {
 			color = color.trim();
 			if (!color) {
 				return `<span class='highlight error'>Please provide a color using 'setcolor &lt;color&gt; | rainbow | help'</span>`;
 			}
 			const colorName = color.toLowerCase();
 
-			const colorToRgb = (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})'`;
+			const colorToRgb = color => `rgb(${color[0]}, ${color[1]}, ${color[2]})'`;
 
-			if (colorName === "rainbow") {
+			if (colorName === 'rainbow') {
 				setRainbowEnabled(true);
 				return "Rainbow mode <span class='highlight rainbow'>enabled</span>";
-			} else if (colorName === "help") {
+			} else if (colorName === 'help') {
 				return [colorHelp(), false];
 			}
 
@@ -212,7 +207,7 @@ export const commands = {
 			setColor(colorParsed);
 
 			return `Color changed to <span class='color-repr' style='--color: ${colorToRgb(
-				colorParsed
+				colorParsed,
 			)}'>${colorName}</span>`;
 		},
 	},
@@ -224,15 +219,16 @@ export const commands = {
 			} else if (whoamiCounter === 2) {
 				return "I already told you, I'm a terminal. Try something else.";
 			} else if (whoamiCounter === 3) {
-				const filtered_commands = Object.keys(commands).filter((c) => !commands[c].noHelp).filter(
-					(c) => !["whoami", "help"].includes(c)
-				);
-				const randomCommand = filtered_commands[Math.floor(Math.random() * filtered_commands.length)];
+				const filtered_commands = Object.keys(commands)
+					.filter(c => !commands[c].noHelp)
+					.filter(c => !['whoami', 'help'].includes(c));
+				const randomCommand =
+					filtered_commands[Math.floor(Math.random() * filtered_commands.length)];
 
 				return html(
-					"Are you looking for the ",
+					'Are you looking for the ',
 					createInlineCommandSuggestion(randomCommand),
-					" command?"
+					' command?',
 				);
 			} else {
 				return `Alright, alright. You can find my source code at <a href='https://github.com/MatthiasHarzer/matthias.harzer.dev' target='_blank'>github.com/MatthiasHarzer/matthias.harzer.dev</a>.`;
@@ -243,19 +239,19 @@ export const commands = {
 		isHidden: true,
 		noHelp: true,
 		fn: () => {
-			return `You found the secret command <img class='pixel-emoji' src='/assets/celeb.webp'>, but I haven't implemented it yet :/`
-		}
+			return `You found the secret command <img class='pixel-emoji' src='/assets/celeb.webp'>, but I haven't implemented it yet :/`;
+		},
 	},
 
 	help: {
 		fn: () => {
-			const start = document.createElement("span");
-			start.innerHTML = "Available commands: ";
+			const start = document.createElement('span');
+			start.innerHTML = 'Available commands: ';
 
-			const container = document.createElement("div");
+			const container = document.createElement('div');
 			container.appendChild(start);
 
-			const useCommand = (command) => {
+			const useCommand = command => {
 				terminalInput.value = command;
 			};
 
@@ -268,7 +264,7 @@ export const commands = {
 				container.appendChild(commandElement);
 
 				if (index < Object.keys(commands).length - 1) {
-					container.appendChild(document.createTextNode(", "));
+					container.appendChild(document.createTextNode(', '));
 				}
 			}
 			return container;
@@ -276,7 +272,7 @@ export const commands = {
 	},
 };
 
-const createInlineCommandSuggestion = (commandName) => {
+const createInlineCommandSuggestion = commandName => {
 	const useCommand = () => {
 		terminalInput.value = commandName;
 	};
@@ -292,12 +288,12 @@ const createInlineCommandSuggestion = (commandName) => {
 		} else {
 			return acc + ` <${param}>`;
 		}
-	}, "");
+	}, '');
 
-	const commandElement = document.createElement("button");
+	const commandElement = document.createElement('button');
 	commandElement.innerText = `${commandName}${paramsString}`;
-	commandElement.classList.add("clear", "highlight");
-	commandElement.addEventListener("click", useCommand);
+	commandElement.classList.add('clear', 'highlight');
+	commandElement.addEventListener('click', useCommand);
 
 	return commandElement;
-}
+};

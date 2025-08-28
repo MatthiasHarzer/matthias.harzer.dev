@@ -1,0 +1,416 @@
+@font-face {
+	font-family: Karla;
+	src: url(../../assets/Karla.ttf);
+}
+
+@font-face {
+	font-family: VT323;
+	src: url(../../assets/VT323-Regular.ttf);
+}
+
+.discrete-scrollbar::-webkit-scrollbar {
+	width: 4px;
+	background-color: var(--border-color);
+}
+
+.discrete-scrollbar::-webkit-scrollbar-thumb {
+	background: grey;
+}
+
+body {
+	--border-color: #44475a;
+	background: rgb(32, 33, 36);
+	background: linear-gradient(
+		180deg,
+		rgba(32, 33, 36, 1) 0%,
+		rgba(40, 42, 54, 1) 50%,
+		rgba(32, 33, 36, 1) 100%
+	);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	margin: 0;
+}
+
+#terminal {
+	position: relative;
+	z-index: 1;
+	--glow-color: #6400ffff;
+
+	background-color: #1e1e1e;
+	color: rgb(218, 218, 218);
+	font-family: VT323, monospace;
+	border: 4px solid var(--border-color);
+	border-radius: 1px;
+	font-size: 1.5em;
+
+	box-shadow: 0 0 30px var(--glow-color);
+
+	width: 100%;
+	height: 100%;
+	max-width: 850px;
+	max-height: 550px;
+
+	display: flex;
+	flex-direction: column;
+
+	.header {
+		flex: 0 0 auto;
+		border-bottom: 2px solid var(--border-color);
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 15px;
+
+		.icon {
+			margin-right: 10px;
+
+			width: 40px;
+			height: 40px;
+		}
+	}
+
+	.body {
+		flex: 1 1 auto;
+		overflow: hidden;
+
+		display: flex;
+		flex-direction: row;
+
+		.terminal-commands {
+			flex: 0 0 auto;
+			border-right: 2px solid var(--border-color);
+			overflow-y: auto;
+
+			.commands-header {
+				align-items: center;
+				padding: 5px 15px;
+			}
+
+			.command {
+				cursor: pointer;
+				padding: 5px 20px 5px 10px;
+				border-bottom: 1px solid rgba(68, 71, 90, 0.2);
+				color: #bd93f9;
+				transition: all 0.2s;
+
+				& > span {
+					display: block;
+					transition: all 0.2s;
+
+					&:before {
+						content: ">_";
+						margin-right: 5px;
+						transition: all 0.2s;
+						display: inline-block;
+						scale: 0.8;
+						opacity: 0;
+					}
+				}
+
+				&:hover,
+				&.active,
+				&.animation-active {
+					background-color: #44475a;
+
+					span {
+						transform: translateX(10px);
+
+						&:before {
+							scale: 1;
+							opacity: 1;
+						}
+					}
+				}
+			}
+		}
+
+		.terminal-content {
+			padding: 10px;
+			display: flex;
+			flex-direction: column;
+
+			.history {
+				overflow-y: auto;
+
+				&::-webkit-scrollbar {
+					display: none;
+				}
+			}
+
+			.command-line {
+				display: flex;
+				flex-direction: row;
+				align-items: flex-start;
+
+				&.past {
+					opacity: 0.9;
+				}
+
+				.prompt {
+					color: #50fa7b;
+					margin-right: 10px;
+					text-wrap: nowrap;
+				}
+
+				&.input-line {
+					position: sticky;
+
+					input {
+						color: inherit;
+						font-family: inherit;
+						background-color: transparent;
+						border: none;
+						outline: none;
+						width: 100%;
+						font-size: inherit;
+					}
+				}
+			}
+
+			.response {
+				margin: 5px 0;
+
+				.char {
+					animation: char-appear 0s forwards;
+					opacity: 0;
+				}
+
+				a {
+					color: #bd93f9;
+				}
+
+				.set-color-button {
+					span:hover {
+						text-decoration: underline;
+					}
+				}
+
+				.highlight {
+					color: #fd63f8;
+
+					&.lit {
+						color: #4c64ff;
+					}
+
+					&.go {
+						color: #00add8;
+					}
+
+					&.svelte {
+						color: #f96743;
+					}
+
+					&.vue {
+						color: #41b883;
+					}
+
+					&.node {
+						color: #8cc84b;
+					}
+
+					&.python {
+						color: #3572a5;
+					}
+
+					&.flutter {
+						color: #31b9f6;
+					}
+
+					&.java {
+						color: #b07219;
+					}
+
+					&.cs {
+						color: #178600;
+					}
+
+					&.error {
+						color: #ff5555;
+					}
+
+					&.rainbow {
+						background: linear-gradient(
+							90deg,
+							#ff2c55,
+							#ff6555,
+							#ffaa55,
+							#ffd955,
+							#ffee55,
+							#d4ff55,
+							#8cff55,
+							#55ff6e,
+							#55ffb9,
+							#55ffea,
+							#55f7ff,
+							#55c4ff,
+							#5581ff,
+							#5557ff,
+							#7a55ff,
+							#b355ff,
+							#e355ff,
+							#ff55f0,
+							#ff55b5,
+							#ff558a,
+							#ff5564,
+							#ff5549
+						);
+						-webkit-background-clip: text;
+						background-clip: text;
+						-webkit-text-fill-color: transparent;
+					}
+
+					&.hka {
+						color: #d72305;
+					}
+
+					&.thenativeweb {
+						color: #dd0099;
+					}
+
+					&.eventql,
+					&.eventsourcingdb {
+						color: #25a55a;
+					}
+
+					&.smartreadinessindicator {
+						color: #1d88cc;
+					}
+
+					&.kit,
+					&.tmb {
+						color: #009682;
+					}
+				}
+			}
+		}
+	}
+}
+
+.color-repr {
+	color: color-mix(in srgb, var(--color) 70%, white 30%) !important;
+	letter-spacing: 0.03em;
+
+	&:not(.rainbow) {
+		text-shadow: 1px 1px 1px rgba(150, 142, 142, 0.5);
+	}
+}
+
+button.clear,
+button.highlight {
+	background-color: transparent;
+	border: none;
+	color: inherit;
+	font-family: inherit;
+	font-size: inherit;
+	cursor: pointer;
+	padding: 0;
+	margin: 0;
+}
+
+a,
+button.highlight {
+	position: relative;
+
+	text-decoration: none;
+	background-image: linear-gradient(currentColor, currentColor);
+	background-position: 0% 100%;
+	background-repeat: no-repeat;
+	background-size: 0% 2px;
+	transition: background-size 0.3s;
+
+	&:hover,
+	&:focus {
+		background-size: 100% 2px;
+	}
+}
+
+.background {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	opacity: 0.5;
+}
+
+.cursor-trail {
+	position: absolute;
+	pointer-events: none;
+	overflow: hidden;
+	color: #50fa7b;
+	font-family: VT323, monospace;
+	animation: cursor-trail-blink 1s forwards;
+}
+
+ul.career-list {
+	margin-top: 0.5em;
+	margin-bottom: 0;
+	list-style: none;
+	padding: 0 0 0 1em;
+
+	li {
+		padding: 0.3em;
+		border-bottom: 1px solid rgba(68, 71, 90, 0.2);
+		background-color: rgba(68, 71, 90, 0);
+		transition: background-color 0.2s;
+		border-radius: 2px;
+		margin-bottom: 0.8em;
+
+		&:hover {
+			background-color: rgba(68, 71, 90, 0.3);
+		}
+	}
+}
+
+.career-dates {
+	color: #757575;
+	font-weight: lighter;
+}
+
+.career-passage {
+	margin: 0.3em 0;
+}
+
+.pixel-emoji {
+	width: 0.75em;
+	height: 0.75em;
+	vertical-align: middle;
+	padding-bottom: 0.15em;
+
+	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -o-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: optimize-contrast;
+}
+
+@keyframes cursor-trail-blink {
+	0% {
+		opacity: 0;
+	}
+
+	30% {
+		opacity: 1;
+	}
+
+	60% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes char-appear {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}

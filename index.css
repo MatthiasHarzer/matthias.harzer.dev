@@ -1,0 +1,38 @@
+@font-face {
+	font-family: Karla;
+	src: url(/assets/fonts/Karla.ttf);
+}
+
+@font-face {
+	font-family: VT323;
+	src: url(/assets/fonts/VT323-Regular.ttf);
+}
+
+body {
+	-webkit-font-smoothing: antialiased;
+	line-height: 1.5;
+	--border-color: #44475a;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100dvh;
+	margin: 0;
+}
+
+@keyframes trail-appear {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+@keyframes trail-disappear {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
