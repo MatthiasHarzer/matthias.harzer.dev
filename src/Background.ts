@@ -75,12 +75,12 @@ export class Background extends Component {
 
 	connectedCallback(): void {
 		super.connectedCallback();
-		this.addEventListener('mousemove', this.#onMouseMove);
+		window.addEventListener('mousemove', this.#onMouseMove);
 	}
 
 	disconnectedCallback(): void {
 		super.disconnectedCallback();
-		this.removeEventListener('mousemove', this.#onMouseMove);
+		window.removeEventListener('mousemove', this.#onMouseMove);
 	}
 
 	cache = new Map<string, TrailItem>();

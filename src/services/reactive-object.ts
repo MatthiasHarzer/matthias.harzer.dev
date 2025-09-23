@@ -3,8 +3,7 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
 export type Subscriber<T> = (value: T) => void;
 export type Unsubscribe = () => void;
 
-// biome-ignore lint/suspicious/noExplicitAny: any is needed to store the state
-export type BaseObject = Record<string, any>;
+export type BaseObject = Record<string, unknown>;
 
 export class ReactiveObject<T extends BaseObject> implements ReactiveController {
 	private state: T = {} as T;

@@ -55,7 +55,6 @@ export class Component extends LitElement {
 	connectedCallback(): void {
 		super.connectedCallback();
 	}
-
 	dispatch<T>(
 		name: string,
 		detail: T | null = null,
@@ -93,6 +92,7 @@ const StatefulMixin = <Base extends Constructor<Component>, State extends BaseSt
 	class StatefulComponent extends base {
 		private _stateObserver: ReactiveObject<State>;
 
+		// biome-ignore lint/suspicious/noExplicitAny: any is needed to pass the constructor arguments
 		constructor(...args: any[]) {
 			super(...args);
 			this._stateObserver = new ReactiveObject<State>(initialState);
