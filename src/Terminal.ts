@@ -1,10 +1,16 @@
 import { css, html } from 'lit';
+import { state } from 'lit/decorators/state.js';
+import { map } from 'lit/directives/map.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
 import { commandNotFound, type CommandResult, findCommand } from './services/commands.ts';
 import { parseCommand } from './services/parse-command.ts';
 import type { TerminalInput } from './TerminalInput.ts';
-import type { TerminalResponseRenderer } from './TerminalResponseRenderer.ts';
+
+interface Response {
+	result: CommandResult;
+	commandAndArgs: string;
+}
 
 export class Terminal extends Component {
 	static styles = css`
@@ -54,29 +60,35 @@ export class Terminal extends Component {
 
 	#inputRef: Ref<TerminalInput> = createRef();
 	#focusInput = this.focusInput.bind(this);
-	#responseRendererRef: Ref<TerminalResponseRenderer> = createRef();
 
-	get responseRenderer() {
-		if (!this.#responseRendererRef.value) {
-			throw new Error('Response renderer not found');
-		}
-		return this.#responseRendererRef.value;
+	@state() responses: Response[] = [];
+
+	addResponse(response: Response) {
+		this.responses = [...this.responses, response];
 	}
 
 	focusInput() {
+		if (window.getSelection()?.toString()) return;
 		this.#inputRef.value?.focus();
 	}
 
 	onCommandSubmit(event: CustomEvent<{ value: string }>) {
-		const { command: commandName, args } = parseCommand(event.detail.value);
+		const commandAndArgs = event.detail.value.trim();
+		const { command: commandName, args } = parseCommand(commandAndArgs);
 		const command = findCommand(commandName);
 		if (!command) {
-			this.responseRenderer.addResponse(commandNotFound);
+			this.addResponse({
+				result: commandNotFound(commandName),
+				commandAndArgs: commandAndArgs,
+			});
 			return;
 		}
 
 		const result = command.execute(...args);
-		this.responseRenderer.addResponse(result);
+		this.addResponse({
+			result,
+			commandAndArgs: commandAndArgs,
+		});
 	}
 
 	connectedCallback(): void {
@@ -107,7 +119,18 @@ export class Terminal extends Component {
 				</div> -->
 				<div class="terminal-content">
 					<div class="history">
-						<mh-terminal-response-renderer ${ref(this.#responseRendererRef)}></mh-terminal-response-renderer>
+						${map(
+							this.responses,
+							response => html`
+							<mh-terminal-response-item
+								.result=${response.result}
+								command-and-args=${response.commandAndArgs}
+								.terminal=${this}
+								use-typewriter
+								>
+							</mh-terminal-response-item>
+						`,
+						)}
 					</div>
 					<div class="command-input">
 						<mh-terminal-input

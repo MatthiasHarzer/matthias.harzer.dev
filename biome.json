@@ -47,7 +47,9 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"complexity": "on",
+			"complexity": {
+        "noExcessiveLinesPerFunction": "off"
+      },
 			"correctness": {
 				"noPrivateImports": "off"
 			},
