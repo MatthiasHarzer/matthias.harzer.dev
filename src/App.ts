@@ -36,7 +36,6 @@ export class App extends Component {
 		configService.observeKey(
 			'glowColor',
 			color => {
-				console.log('Setting favicon color to:', color);
 				if (color !== 'rainbow') {
 					faviconSetter.setColor(color);
 				}
