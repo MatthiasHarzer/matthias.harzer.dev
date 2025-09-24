@@ -8,6 +8,7 @@ import { commandNotFound, findCommand, helpCommands } from './services/commands.
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
 import { type Color, rainbowProvider } from './services/rainbow.ts';
+import type { Unsubscribe } from './services/reactive.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
@@ -225,6 +226,11 @@ export class Terminal extends Component {
 		this.inputElement.suggestPlaceholder(randomeCommand.name);
 	}
 
+	setGlowColor(color: string) {
+		// This is not the ideal way to do this in Lit, but to prevent rerendering the entire component on every color change, we directly manipulate the style here.
+		this.style.setProperty('--glow-color', color);
+	}
+
 	connectedCallback(): void {
 		super.connectedCallback();
 		this.addEventListener('click', this.#focusInput);
@@ -235,12 +241,22 @@ export class Terminal extends Component {
 		this.#suggestionTimeout = window.setInterval(() => {
 			this.#makeRandomSuggestion();
 		}, 15_000);
-		rainbowProvider.subscribe(() => {
-			const colorStr = toHexColor(rainbowProvider.value);
 
-			// This is not the ideal way to do this in Lit, but to prevent rerendering the entire component on every color change, we directly manipulate the style here.
-			this.style.setProperty('--glow-color', colorStr);
-		}, false);
+		let rainbowSubscriber: Unsubscribe | null = null;
+		configService.subscribe(config => {
+			if (config.glowColor === 'rainbow') {
+				rainbowSubscriber?.();
+				rainbowSubscriber = rainbowProvider.subscribe(() => {
+					const colorStr = toHexColor(rainbowProvider.value);
+					this.setGlowColor(colorStr);
+				}, true);
+				return;
+			}
+
+			rainbowSubscriber?.();
+			rainbowSubscriber = null;
+			this.setGlowColor(config.glowColor);
+		}, true);
 	}
 
 	disconnectedCallback(): void {

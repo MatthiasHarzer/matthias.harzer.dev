@@ -3,10 +3,12 @@ import { Observable } from './reactive.ts';
 
 interface Config {
 	typewriterCharsPerSecond: number;
+	glowColor: string;
 }
 
 const initialConfig: Config = {
 	typewriterCharsPerSecond: 300,
+	glowColor: 'rainbow',
 };
 
 class ConfigObservable extends Observable<Config> {
@@ -21,7 +23,8 @@ class ConfigObservable extends Observable<Config> {
 		const savedValue = localStorage.getItem(this.localStorageKey);
 		if (savedValue) {
 			try {
-				this.observableValue = JSON.parse(savedValue);
+				const parsedValue = JSON.parse(savedValue);
+				this.observableValue = { ...initialValue, ...parsedValue };
 			} catch {
 				// Ignore JSON parse errors
 			}
@@ -60,6 +63,8 @@ class ConfigObservable extends Observable<Config> {
 			default:
 				throw new Error(`Unsupported config key type for key "${key}".`);
 		}
+
+		this.notifySubscribers();
 	}
 
 	getKeyValue(key: string): string {
