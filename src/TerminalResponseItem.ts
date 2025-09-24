@@ -140,6 +140,18 @@ export class TerminalResponseItem extends Component {
 				color: #757575;
   			font-weight: lighter;
 			}
+
+			&.command {
+				color: #8be9fd;
+			}
+
+			&.config-key {
+				color: #ff79c6;
+			}
+
+			&.config-value {
+				color: #f1fa8c;
+			}
 		}
 
 		a.highlight {

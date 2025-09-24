@@ -1,14 +1,16 @@
 import type { BaseObject } from './reactive-object.ts';
-import { Observable } from './reactive.ts';
+import { Observable, type Subscriber } from './reactive.ts';
 
 interface Config {
 	typewriterCharsPerSecond: number;
 	glowColor: string;
+	cursorTrailTimeoutMs: number;
 }
 
 const initialConfig: Config = {
 	typewriterCharsPerSecond: 300,
 	glowColor: 'rainbow',
+	cursorTrailTimeoutMs: 1000,
 };
 
 class ConfigObservable extends Observable<Config> {
@@ -74,6 +76,17 @@ class ConfigObservable extends Observable<Config> {
 
 		const value = (this.observableValue as BaseObject)[key];
 		return String(value);
+	}
+
+	observeKey<K extends keyof Config>(key: K, fn: Subscriber<Config[K]>, runImmediately = true) {
+		let lastValue: Config[K] = this.observableValue[key];
+		return this.subscribe(() => {
+			const newValue = this.observableValue[key];
+			if (newValue !== lastValue) {
+				lastValue = newValue;
+				fn(newValue);
+			}
+		}, runImmediately);
 	}
 }
 

@@ -156,14 +156,10 @@ class HelpCommand implements Command {
 					text('Examples:'),
 					linebreak(),
 					indentation(2, [
-						button('help', () => {
-							terminal.pasteCommand('help');
-						}),
+						mentionCommandName(terminal, 'help', 'help'),
 						text(' - Lists all available commands.'),
 						linebreak(),
-						button('help config', () => {
-							terminal.pasteCommand('help config');
-						}),
+						mentionCommandName(terminal, 'help config', 'help config'),
 						text(' - Displays detailed information about the "config" command.'),
 					]),
 				];
@@ -433,19 +429,13 @@ const commands: Command[] = [
 							text('Actions:'),
 							linebreak(),
 							indentation(2, [
-								button('list', () => {
-									terminal.pasteCommand('config list');
-								}),
+								mentionCommandName(terminal, 'config list', 'config list'),
 								text(' - Lists all config keys and their values.'),
 								linebreak(),
-								button('get <key>', () => {
-									terminal.pasteCommand('config get ');
-								}),
+								mentionCommandName(terminal, 'config get <key>', 'config get '),
 								text(' - Gets the value of the specified config key.'),
 								linebreak(),
-								button('set <key> <value>', () => {
-									terminal.pasteCommand('config set ');
-								}),
+								mentionCommandName(terminal, 'config set <key> <value>', 'config set '),
 								text(' - Sets the value of the specified config key.'),
 							]),
 							linebreak(1),

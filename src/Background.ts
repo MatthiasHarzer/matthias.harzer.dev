@@ -1,11 +1,12 @@
 import { css, html } from 'lit';
 import { createRef, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
+import { configService } from './services/config.ts';
+import type { Unsubscribe } from './services/reactive.ts';
 import { roundToNearest } from './services/round.ts';
 
 const CHARACTERS = ['0', '1'];
 const TRAIL_SIZE = 15;
-const TRAIL_TIMEOUT = 1000;
 const TRANSITION_TIME = 300;
 
 interface TrailItem {
@@ -65,6 +66,7 @@ export class Background extends Component {
 	#onMouseMove = this.onMouseMove.bind(this);
 	#containerRef = createRef<HTMLDivElement>();
 	#lastTrailItem: TrailItem | null = null;
+	#unsubscribeConfig: Unsubscribe | null = null;
 
 	get container() {
 		if (!this.#containerRef.value) {
@@ -76,11 +78,22 @@ export class Background extends Component {
 	connectedCallback(): void {
 		super.connectedCallback();
 		window.addEventListener('mousemove', this.#onMouseMove);
+
+		this.#unsubscribeConfig = configService.observeKey(
+			'cursorTrailTimeoutMs',
+			() => {
+				for (const [id] of this.cache) {
+					this.setRemoveTimeout(id);
+				}
+			},
+			false,
+		);
 	}
 
 	disconnectedCallback(): void {
 		super.disconnectedCallback();
 		window.removeEventListener('mousemove', this.#onMouseMove);
+		this.#unsubscribeConfig?.();
 	}
 
 	cache = new Map<string, TrailItem>();
@@ -112,7 +125,7 @@ export class Background extends Component {
 		existing.timeoutId = window.setTimeout(() => {
 			existing.element.style.animation = 'fadeout 0.3s forwards';
 			existing.timeoutId = window.setTimeout(remove, TRANSITION_TIME);
-		}, TRAIL_TIMEOUT);
+		}, configService.value.cursorTrailTimeoutMs);
 	}
 
 	newTrailItem(x: number, y: number): TrailItem {
