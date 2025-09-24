@@ -1,7 +1,15 @@
 import type { Terminal } from '../Terminal.ts';
 
 interface ResultPart {
-	type: 'text' | 'highlight' | 'link' | 'linebreak' | 'button';
+	type:
+		| 'text'
+		| 'highlight'
+		| 'link'
+		| 'linebreak'
+		| 'button'
+		| 'paragraph'
+		| 'indentation'
+		| 'hover-highlight-block';
 }
 
 interface ResultText extends ResultPart {
@@ -24,6 +32,7 @@ interface ResultLink extends ResultPart {
 
 interface ResultLinebreak extends ResultPart {
 	type: 'linebreak';
+	height?: number; // in em
 }
 
 interface ResultButton extends ResultPart {
@@ -33,7 +42,31 @@ interface ResultButton extends ResultPart {
 	action: (terminal: Terminal) => void;
 }
 
-type ResultItem = ResultText | ResultHighlight | ResultLink | ResultLinebreak | ResultButton;
+interface ResultParagraph extends ResultPart {
+	type: 'paragraph';
+	parts: ResultItem[];
+}
+
+interface ResultIndentation extends ResultPart {
+	type: 'indentation';
+	level: number; // number of indentation levels (1 level = 4 spaces)
+	parts: ResultItem[];
+}
+
+interface ResultHoverHighlightBlock extends ResultPart {
+	type: 'hover-highlight-block';
+	parts: ResultItem[];
+}
+
+type ResultItem =
+	| ResultText
+	| ResultHighlight
+	| ResultLink
+	| ResultLinebreak
+	| ResultButton
+	| ResultParagraph
+	| ResultIndentation
+	| ResultHoverHighlightBlock;
 
 type CommandResult = ResultItem[];
 
@@ -57,17 +90,27 @@ const link = (text: string, href: string, highlightType?: string): ResultLink =>
 	href,
 	highlightType,
 });
-const linebreak = (): ResultLinebreak => ({ type: 'linebreak' });
+const linebreak = (height?: number): ResultLinebreak => ({ type: 'linebreak', height });
 const button = (text: string, action: (terminal: Terminal) => void): ResultButton => ({
 	type: 'button',
 	text,
 	action,
 });
+const paragraph = (parts: ResultItem[]): ResultParagraph => ({ type: 'paragraph', parts });
+const indentation = (level: number, parts: ResultItem[]): ResultIndentation => ({
+	type: 'indentation',
+	level,
+	parts,
+});
+const hoverHighlightBlock = (parts: ResultItem[]): ResultHoverHighlightBlock => ({
+	type: 'hover-highlight-block',
+	parts,
+});
 
 const commands: Command[] = [
 	{
 		name: 'who',
-		description: 'Displays information about the site owner.',
+		description: 'Displays information about me.',
 		execute: () => {
 			const birthday = new Date(2002, 10, 3);
 			const now = new Date();
@@ -88,6 +131,142 @@ const commands: Command[] = [
 				highlight('web development and design'),
 				text('.'),
 			];
+		},
+	},
+	{
+		name: 'tech',
+		description: 'Lists technologies, I use for development.',
+		execute: () => {
+			return [
+				text('I have experience in building frontend applications with '),
+				link('Lit', 'https://lit.dev/', 'lit'),
+				text(', '),
+				link('Svelte', 'https://svelte.dev/', 'svelte'),
+				text(', '),
+				link('Vue', 'https://vuejs.org/', 'vue'),
+				text(' and '),
+				link('Flutter', 'https://flutter.dev/', 'flutter'),
+				text(' and backend applications with '),
+				link('Go', 'https://go.dev/', 'go'),
+				text(', '),
+				link('Node.js', 'https://nodejs.org/', 'node'),
+				text(', '),
+				link('Python', 'https://www.python.org/', 'python'),
+				text(', and a bit '),
+				link('Java', 'https://www.java.com/', 'java'),
+				text(' and '),
+				link('C#', 'https://dotnet.microsoft.com/en-us/languages/csharp/', 'cs'),
+				text('.'),
+			];
+		},
+	},
+	{
+		name: 'career',
+		description: 'Displays my career so far.',
+		execute: () => {
+			return [
+				text("I'm studying at the "),
+				link('Hochschule Karlsruhe', 'https://www.h-ka.de/', 'hka'),
+				text(' and have been active as a working student:'),
+				linebreak(1),
+				indentation(2, [
+					hoverHighlightBlock([
+						paragraph([
+							link('the native web GmbH', 'https://thenativeweb.io/', 'thenativeweb'),
+							highlight(' (May 2024 - Jul 2025)', 'career-dates'),
+						]),
+						paragraph([
+							text('Working student for back- & frontend development using '),
+							link('Lit', 'https://lit.dev/', 'lit'),
+							text(' and '),
+							link('Go', 'https://go.dev/', 'go'),
+							text(' with a focus on Event Sourcing, CQRS and Domain-Driven Design.'),
+						]),
+						paragraph([
+							text('I was the primary engineer of '),
+							link('EventQL', 'https://docs.eventsourcingdb.io/reference/eventql/', 'eventql'),
+							text(', a self built query language of the '),
+							link('EventSourcingDB', 'https://eventsourcingdb.io/', 'eventsourcingdb'),
+							text('.'),
+						]),
+					]),
+					linebreak(1),
+					hoverHighlightBlock([
+						paragraph([
+							link('Karlsruhe Institute of Technology', 'https://www.kit.edu/', 'kit'),
+							highlight(' (Jun 2023 - Feb 2024)', 'career-dates'),
+						]),
+						paragraph([
+							text('Student assistant at the '),
+							link(
+								'Institute of Technology and Management in Construction',
+								'https://www.tmb.kit.edu/',
+								'tmb',
+							),
+							text('.'),
+						]),
+						paragraph([
+							text('Development of the '),
+							link(
+								'Smart Readiness Indicator',
+								'https://smartreadinessindicator.com/',
+								'smartreadinessindicator',
+							),
+							text(' web platform using '),
+							link('Vue', 'https://vuejs.org/', 'vue'),
+							text(' and '),
+							link('Node.js', 'https://nodejs.org/', 'node'),
+							text('.'),
+						]),
+					]),
+				]),
+				linebreak(),
+			];
+		},
+	},
+	{
+		name: 'github',
+		description: 'Link to my GitHub profile.',
+		execute: () => {
+			return [
+				text('You can find my project at '),
+				link('github.com/MatthiasHarzer', 'https://github.com/MatthiasHarzer', 'github'),
+				text('.'),
+			];
+		},
+	},
+	{
+		name: 'contact',
+		description: 'How to reach me.',
+		execute: () => {
+			return [
+				text('You can contact me via mail at '),
+				link('matthias.harzer03@gmail.com', 'mailto:matthias.harzer03@gmail.com'),
+				text('.'),
+			];
+		},
+	},
+	{
+		name: 'help',
+		description: 'Lists all available commands.',
+		execute: () => {
+			const visibleCommands = commands.filter(cmd => !cmd.isHidden && !cmd.noHelp);
+			visibleCommands.sort((a, b) => a.name.localeCompare(b.name));
+			const commandItems: ResultItem[] = [];
+			visibleCommands.forEach((cmd, index) => {
+				if (index > 0) {
+					commandItems.push(linebreak());
+				}
+				commandItems.push(
+					button(cmd.name, terminal => {
+						terminal.pasteCommand(cmd.name);
+						terminal.focusInput();
+					}),
+					text(' - '),
+					text(cmd.description ?? 'No description available.'),
+				);
+			});
+			return commandItems;
 		},
 	},
 ];

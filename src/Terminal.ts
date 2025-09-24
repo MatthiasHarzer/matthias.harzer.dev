@@ -15,10 +15,6 @@ interface Response {
 export class Terminal extends Component {
 	static styles = css`
 		:host {
-			display: block;
-			height: 100%;
-			width: 100%;
-
 			background-color: #1e1e1e;
 			color: rgb(218, 218, 218);
 			font-family: VT323, monospace;
@@ -53,23 +49,78 @@ export class Terminal extends Component {
 			}
 		}
 
+		.body {
+			flex: 1 1 auto;
+			overflow: hidden;
+
+			padding: 0 10px;
+
+			display: flex;
+			flex-direction: row;
+		}
+
 		.terminal-content {
 			padding: 10px;
+			display: flex;
+			flex-direction: column;
+			flex: 1 1 auto;
+			overflow: hidden;
+			height: 100%;
+
+			.history {
+				flex: 1 1 auto;
+				overflow: auto;
+				padding-right: 5px;
+
+				&::-webkit-scrollbar {
+          display: none;
+        }
+			}
+
+			.command-input {
+				flex: 0 0 auto;
+			}
 		}
 	`;
 
 	#inputRef: Ref<TerminalInput> = createRef();
 	#focusInput = this.focusInput.bind(this);
+	#historyRef: Ref<HTMLDivElement> = createRef();
+
+	get historyElement() {
+		if (!this.#historyRef.value) {
+			throw new Error('History element not available');
+		}
+		return this.#historyRef.value;
+	}
+
+	get inputElement() {
+		if (!this.#inputRef.value) {
+			throw new Error('Input element not available');
+		}
+		return this.#inputRef.value;
+	}
 
 	@state() responses: Response[] = [];
 
 	addResponse(response: Response) {
 		this.responses = [...this.responses, response];
+		requestAnimationFrame(() => {
+			this.historyElement.scrollTo({
+				top: this.historyElement.scrollHeight,
+				behavior: 'smooth',
+			});
+		});
 	}
 
 	focusInput() {
 		if (window.getSelection()?.toString()) return;
-		this.#inputRef.value?.focus();
+		this.inputElement.focus();
+	}
+
+	pasteCommand(command: string) {
+		this.inputElement.value = command;
+		this.focusInput();
 	}
 
 	onCommandSubmit(event: CustomEvent<{ value: string }>) {
@@ -96,6 +147,21 @@ export class Terminal extends Component {
 		this.addEventListener('click', this.#focusInput);
 	}
 
+	firstUpdated(): void {
+		const cmd = findCommand('help');
+		if (cmd) {
+			const result = cmd.execute();
+			this.addResponse({
+				result,
+				commandAndArgs: 'career',
+			});
+			this.addResponse({
+				result,
+				commandAndArgs: 'career',
+			});
+		}
+	}
+
 	disconnectedCallback(): void {
 		super.disconnectedCallback();
 		this.removeEventListener('click', this.#focusInput);
@@ -118,7 +184,7 @@ export class Terminal extends Component {
 					</div>
 				</div> -->
 				<div class="terminal-content">
-					<div class="history">
+					<div class="history" ${ref(this.#historyRef)}>
 						${map(
 							this.responses,
 							response => html`

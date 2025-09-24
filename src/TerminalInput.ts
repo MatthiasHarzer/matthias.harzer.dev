@@ -26,6 +26,14 @@ export class TerminalInput extends Component {
 		return this.#inputRef.value;
 	}
 
+	set value(value: string) {
+		this.#input.value = value;
+	}
+
+	get value() {
+		return this.#input.value;
+	}
+
 	focus() {
 		this.#inputRef.value?.focus();
 	}

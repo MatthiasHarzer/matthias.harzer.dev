@@ -5,7 +5,7 @@ import { Component } from './litutil/Component.ts';
 import type { CommandResult, ResultItem } from './services/commands.ts';
 import type { Terminal } from './Terminal.ts';
 
-const TYPEWRITER_CHARS_PER_SECOND = 60;
+const TYPEWRITER_CHARS_PER_SECOND = 300;
 
 const cutText = (text: string, maxLength: number) => {
 	if (maxLength === -1) {
@@ -19,8 +19,29 @@ const cutText = (text: string, maxLength: number) => {
 
 export class TerminalResponseItem extends Component {
 	static styles = css`
-		.command-response {
-			line-height: 1;
+		:host {
+			display: flex;
+			flex-direction: column;
+			gap: 0.2em;
+		}
+
+		.response {
+			position: relative;
+
+			.placeholder-render {
+				visibility: hidden;
+			}
+
+			.command-response {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+			}
+		}
+
+		.linebreak {
+			display: block;
 		}
 
 		.highlight {
@@ -116,9 +137,18 @@ export class TerminalResponseItem extends Component {
 			&.tmb {
 				color: #009682;
 			}
+
+			&.career-dates {
+				color: #757575;
+  			font-weight: lighter;
+			}
+		}
+		
+		a.highlight {
+			color: #bd93f9;
 		}
 
-		a {
+		a, button {
 			position: relative;
 
 			text-decoration: none;
@@ -133,6 +163,59 @@ export class TerminalResponseItem extends Component {
 				background-size: 100% 2px;
 			}
 		}
+
+
+
+		button {
+			background-color: transparent;
+			border: none;
+			color: inherit;
+			font-family: inherit;
+			font-size: inherit;
+			cursor: pointer;
+			padding: 0;
+			margin: 0;
+		}
+
+		.indentation {
+			&.0 {
+				margin-left: 0;
+			}
+
+			&.l-1 {
+				margin-left: 20px;
+			}
+
+			&.l-2 {
+				margin-left: 40px;
+			}
+
+			&.l-3 {
+				margin-left: 60px;
+			}
+
+			&.l-4 {
+				margin-left: 80px;
+			}
+		}
+
+		p {
+			padding: 0.3em 0.3em 0 0.3em;
+
+			&:last-child {
+				padding-bottom: 0.3em;
+			}
+		}
+
+		.hover-highlight-block {
+			background-color: transparent;
+
+			transition: background-color 0.2s;
+
+			&:hover {
+				background-color: rgba(68, 71, 90, 0.3);
+			}
+		}
 	`;
 
 	@property({ type: Boolean, attribute: 'use-typewriter' }) useTypewriter = false;
@@ -141,12 +224,15 @@ export class TerminalResponseItem extends Component {
 	@property({ attribute: false }) result: CommandResult = [];
 
 	@state() _displayedContent: TemplateResult<1> | TemplateResult<1>[] = html``;
+	#placeholderRender: TemplateResult<1> | TemplateResult<1>[] = html``;
 
 	connectedCallback(): void {
 		super.connectedCallback();
 
+		this.#placeholderRender = this.#renderResponse(this.result);
+
 		if (!this.useTypewriter) {
-			this._displayedContent = this.#renderResponse(this.result);
+			this._displayedContent = this.#placeholderRender;
 			return;
 		}
 		this.runTypeWriterEffect();
@@ -183,9 +269,9 @@ export class TerminalResponseItem extends Component {
 	}
 
 	runTypeWriterEffect() {
-		let lastPartIndex = 0;
-		let lastPartCharIndex = 0;
 		let lastTime = 0;
+
+		let numberOfCharsToRender = 0;
 
 		const frame = (time: DOMHighResTimeStamp) => {
 			if (lastTime === 0) {
@@ -201,46 +287,23 @@ export class TerminalResponseItem extends Component {
 				return;
 			}
 
-			let charsLeftToAdd = charsToAdd;
-			const renderedParts: TemplateResult<1>[] = this.renderFinishedParts(lastPartIndex);
+			const renderedParts: TemplateResult<1>[] = [];
 
-			const [unfinishedPart, remainderRenderedChars] = this.renderUnfinishedPart(
-				lastPartIndex,
-				lastPartCharIndex,
-				charsLeftToAdd,
-			);
-			if (unfinishedPart) {
-				renderedParts.push(unfinishedPart);
-				charsLeftToAdd -= remainderRenderedChars;
-				if (charsLeftToAdd < 0) {
-					// still rendering this part over more frames
-					lastPartCharIndex += charsToAdd;
-					this._displayedContent = renderedParts;
-					requestAnimationFrame(frame);
-					return;
-				}
-
-				// finished rendering this part
-				lastPartIndex++;
-				lastPartCharIndex = 0;
-			}
-
-			for (let i = lastPartIndex; i < this.result.length; i++) {
+			numberOfCharsToRender += charsToAdd;
+			let remainingCharsToRender = numberOfCharsToRender;
+			for (let i = 0; i < this.result.length; i++) {
 				const part = this.result[i];
-				const [renderedPart, partLength] = this.#renderResponsePart(part, 0);
+				const [renderedPart, partLength] = this.#renderResponsePart(part, remainingCharsToRender);
 				renderedParts.push(renderedPart);
-				charsLeftToAdd -= partLength;
 
-				if (charsLeftToAdd < 0) {
-					// started rendering this part, but didn't finish
-					lastPartIndex = i;
-					lastPartCharIndex = partLength + charsLeftToAdd; // charsLeftToAdd is negative here
+				remainingCharsToRender -= partLength;
+				if (remainingCharsToRender <= 0) {
 					break;
 				}
 			}
 
 			this._displayedContent = renderedParts;
-			if (charsLeftToAdd > 0) {
+			if (remainingCharsToRender > 0) {
 				// finished, because there are still chars available, but no more parts to render
 				return;
 			}
@@ -250,6 +313,28 @@ export class TerminalResponseItem extends Component {
 		};
 
 		requestAnimationFrame(frame);
+	}
+
+	#renderRepsonseParts(
+		parts: ResultItem[],
+		maxCharsToRender: number,
+	): [TemplateResult<1>[], number] {
+		const renderedParts: TemplateResult<1>[] = [];
+		let charsRendered = 0;
+		let totalLength = 0;
+		for (const part of parts) {
+			const [renderedPart, partLength] = this.#renderResponsePart(
+				part,
+				maxCharsToRender === -1 ? -1 : maxCharsToRender - charsRendered,
+			);
+			if (charsRendered < maxCharsToRender || maxCharsToRender === -1) {
+				renderedParts.push(renderedPart);
+				charsRendered += partLength;
+			}
+
+			totalLength += partLength;
+		}
+		return [renderedParts, totalLength];
 	}
 
 	#renderResponsePart(part: ResultItem, maxCharsToRender: number): [TemplateResult<1>, number] {
@@ -267,7 +352,7 @@ export class TerminalResponseItem extends Component {
 					part.text.length,
 				];
 			case 'linebreak':
-				return [html`<br />`, 1];
+				return [html`<div class="linebreak" style="height: ${part.height ?? 0}em;"></div>`, 1];
 			case 'button': {
 				const terminal = this.terminal;
 				if (!terminal) {
@@ -277,6 +362,27 @@ export class TerminalResponseItem extends Component {
 					html`<button class="highlight ${part.highlightType ?? ''}" @click=${() => part.action(terminal)}>${cutText(part.text, maxCharsToRender)}</button>`,
 					part.text.length,
 				];
+			}
+			case 'paragraph': {
+				const [renderedParts, totalLength] = this.#renderRepsonseParts(
+					part.parts,
+					maxCharsToRender,
+				);
+				return [html`<p>${renderedParts}</p>`, totalLength];
+			}
+			case 'indentation': {
+				const [renderedParts, totalLength] = this.#renderRepsonseParts(
+					part.parts,
+					maxCharsToRender,
+				);
+				return [html`<div class="indentation l-${part.level}">${renderedParts}</div>`, totalLength];
+			}
+			case 'hover-highlight-block': {
+				const [renderedParts, totalLength] = this.#renderRepsonseParts(
+					part.parts,
+					maxCharsToRender,
+				);
+				return [html`<div class="hover-highlight-block">${renderedParts}</div>`, totalLength];
 			}
 		}
 	}
@@ -290,8 +396,13 @@ export class TerminalResponseItem extends Component {
 			<mh-terminal-section>
 				${this.commandAndArgs}
 			</mh-terminal-section>
-			<div class="command-response">
-				${this._displayedContent}
+			<div class="response">
+				<div class="placeholder-render">
+					${this.#placeholderRender}
+				</div>
+				<div class="command-response">
+					${this._displayedContent}
+				</div>
 			</div>
 		`;
 	}
