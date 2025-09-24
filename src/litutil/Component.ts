@@ -15,6 +15,7 @@ input {
 * {
   margin: 0;
 	interpolate-size: allow-keywords;
+	font-variant-ligatures: none;
 }
 
 img, picture, video, canvas, svg {

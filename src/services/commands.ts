@@ -13,6 +13,7 @@ import {
 	type ResultItem,
 	text,
 } from './command-result.ts';
+import { configService } from './config.ts';
 import type { BaseObject } from './reactive-object.ts';
 
 /**
@@ -33,7 +34,7 @@ const getFunctionParameters = (func: (...args: any[]) => any): [string, boolean]
 	return params.map(p => {
 		const parts = p.split('=');
 		const hasDefault = parts.length > 1;
-		return [parts[0], hasDefault];
+		return [parts[0].trim(), hasDefault];
 	});
 };
 
@@ -313,56 +314,57 @@ const commands: Command[] = [
 		description: 'Configure the terminal.',
 		isHidden: true,
 		noHelp: false,
-		prepare: (terminal: Terminal) => (action: string, configKey: string, configValue: string) => {
-			if (!['set', 'get', 'list'].includes(action)) {
-				return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
-			}
-
-			switch (action) {
-				case 'list':
-					return Object.keys(terminal.localState).flatMap((key, index) => {
-						const value = (terminal.localState as BaseObject)[key];
-						return [
-							index > 0 ? linebreak() : null,
-							button(key, () => {
-								terminal.pasteCommand(`config set ${key} `);
-								terminal.focusInput();
-							}),
-							text(' = '),
-							highlight(String(value), 'config-value'),
-						].filter(item => item !== null);
-					});
-				case 'set': {
-					if (!(configKey in terminal.localState)) {
-						return [text(`Error: Unknown config key "${configKey}".`)];
-					}
-
-					terminal.setConfig(configKey, configValue);
-					return [
-						text(`Set config key "`),
-						highlight(configKey, 'config-key'),
-						text(`" to "`),
-						highlight(String(configValue), 'config-value'),
-						text(`".`),
-					];
-				}
-				case 'get': {
-					if (!(configKey in terminal.localState)) {
-						return [text(`Error: Unknown config key "${configKey}".`)];
-					}
-					const value = (terminal.localState as BaseObject)[configKey];
-					return [
-						text(`Config key "`),
-						highlight(configKey, 'config-key'),
-						text(`" is set to "`),
-						highlight(String(value), 'config-value'),
-						text(`".`),
-					];
-				}
-				default:
+		prepare:
+			(terminal: Terminal) =>
+			(action: string, configKey: string | null = null, configValue: string | null = null) => {
+				if (!['set', 'get', 'list'].includes(action)) {
 					return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
-			}
-		},
+				}
+
+				switch (action) {
+					case 'list':
+						return Object.keys(configService.value).flatMap((key, index) => {
+							const value = (configService.value as BaseObject)[key];
+							return [
+								index > 0 ? linebreak() : null,
+								button(key, () => {
+									terminal.pasteCommand(`config set ${key} `);
+									terminal.focusInput();
+								}),
+								text(' = '),
+								highlight(String(value), 'config-value'),
+							].filter(item => item !== null);
+						});
+					case 'set': {
+						if (configKey === null || configValue === null) {
+							return [text('Error: No config key or value provided.')];
+						}
+						configService.setKeyValue(configKey, configValue);
+						return [
+							text(`Set config key "`),
+							highlight(configKey, 'config-key'),
+							text(`" to "`),
+							highlight(String(configValue), 'config-value'),
+							text(`".`),
+						];
+					}
+					case 'get': {
+						if (configKey === null) {
+							return [text('Error: No config key provided.')];
+						}
+						const value = configService.getKeyValue(configKey);
+						return [
+							text(`Config key "`),
+							highlight(configKey, 'config-key'),
+							text(`" is set to "`),
+							highlight(String(value), 'config-value'),
+							text(`".`),
+						];
+					}
+					default:
+						return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
+				}
+			},
 	},
 ];
 commands.sort((a, b) => a.name.localeCompare(b.name));

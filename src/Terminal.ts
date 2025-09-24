@@ -2,12 +2,12 @@ import { css, html } from 'lit';
 import { state } from 'lit/decorators/state.js';
 import { map } from 'lit/directives/map.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
-import { LocalStateComponent } from './litutil/Component.ts';
+import { Component } from './litutil/Component.ts';
 import type { CommandResult } from './services/command-result.ts';
 import { commandNotFound, findCommand, helpCommands } from './services/commands.ts';
+import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
 import { type Color, rainbowProvider } from './services/rainbow.ts';
-import type { BaseObject } from './services/reactive-object.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
@@ -29,17 +29,7 @@ const toHexColor = (color: Color) => {
 	return `#${r}${g}${b}`;
 };
 
-const TYPEWRITER_CHARS_PER_SECOND = 300;
-
-interface State {
-	typewriterCharsPerSecond: number;
-}
-
-const initialState: State = {
-	typewriterCharsPerSecond: TYPEWRITER_CHARS_PER_SECOND,
-};
-
-export class Terminal extends LocalStateComponent<State>({ initialState }) {
+export class Terminal extends Component {
 	static styles = css`
 		:host {
 			width: 100%;
@@ -141,36 +131,6 @@ export class Terminal extends LocalStateComponent<State>({ initialState }) {
 			throw new Error('Input element not available');
 		}
 		return this.#inputRef.value;
-	}
-
-	setConfig(key: string, value: string) {
-		if (!(key in initialState)) {
-			throw new Error(`Unknown config key "${key}".`);
-		}
-
-		const valueType = initialState[key as keyof State];
-
-		switch (typeof valueType) {
-			case 'number': {
-				const numberValue = Number(value);
-				if (Number.isNaN(numberValue)) {
-					throw new Error(`Invalid value for config key "${key}". Expected a number.`);
-				}
-				(this.localState as BaseObject)[key] = value;
-				break;
-			}
-			case 'boolean': {
-				const boolValue = value === 'true' || value === '1';
-				(this.localState as BaseObject)[key] = boolValue;
-				break;
-			}
-			case 'string': {
-				(this.localState as BaseObject)[key] = String(value);
-				break;
-			}
-			default:
-				throw new Error(`Unsupported config key type for key "${key}".`);
-		}
 	}
 
 	addResponse(response: Response) {
@@ -294,7 +254,7 @@ export class Terminal extends LocalStateComponent<State>({ initialState }) {
 			case 'result':
 				return html`<mh-terminal-response-item
 					.result=${response.result}
-					typewriter-chars-per-second=${this.localState.typewriterCharsPerSecond}
+					typewriter-chars-per-second=${configService.value.typewriterCharsPerSecond}
 				></mh-terminal-response-item>`;
 			case 'text':
 				return html`<mh-terminal-section>${response.text}</mh-terminal-section>`;
