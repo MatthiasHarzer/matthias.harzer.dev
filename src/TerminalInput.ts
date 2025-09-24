@@ -16,6 +16,8 @@ export class TerminalInput extends Component {
 	`;
 
 	#inputRef: Ref<HTMLInputElement> = createRef();
+	#history: string[] = [];
+	#historyIndex = -1;
 
 	get #input() {
 		if (!this.#inputRef.value) {
@@ -38,10 +40,36 @@ export class TerminalInput extends Component {
 
 	#onKeydown(event: KeyboardEvent) {
 		switch (event.key) {
-			case 'Enter':
-				this.dispatch('submit', { value: this.#input.value });
+			case 'Enter': {
+				const value = this.#input.value.trim();
+				this.dispatch('submit', { value });
 				this.#input.value = '';
+				this.#history.push(value);
+				this.#historyIndex = this.#history.length;
+				event.preventDefault();
 				break;
+			}
+			case 'ArrowUp': {
+				if (this.#history.length === 0) break;
+				if (this.#historyIndex > 0) {
+					this.#historyIndex--;
+					this.#input.value = this.#history[this.#historyIndex];
+				}
+				event.preventDefault();
+				break;
+			}
+			case 'ArrowDown': {
+				if (this.#history.length === 0) break;
+				if (this.#historyIndex < this.#history.length - 1) {
+					this.#historyIndex++;
+					this.#input.value = this.#history[this.#historyIndex];
+				} else {
+					this.#historyIndex = this.#history.length;
+					this.#input.value = '';
+				}
+				event.preventDefault();
+				break;
+			}
 		}
 	}
 
