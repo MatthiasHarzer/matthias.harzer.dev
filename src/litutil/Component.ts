@@ -52,9 +52,14 @@ export class Component extends LitElement {
 		Component._styles = styles;
 	}
 
+	sleep(ms: number) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
 	connectedCallback(): void {
 		super.connectedCallback();
 	}
+
 	dispatch<T>(
 		name: string,
 		detail: T | null = null,

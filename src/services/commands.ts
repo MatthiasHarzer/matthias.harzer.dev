@@ -309,9 +309,9 @@ const commands: Command[] = [
 		name: 'help',
 		description: 'Lists all available commands.',
 		prepare: terminal => () => {
-			visibleCommands.sort((a, b) => a.name.localeCompare(b.name));
+			helpCommands;
 			const commandItems: ResultItem[] = [];
-			visibleCommands.forEach((cmd, index) => {
+			helpCommands.forEach((cmd, index) => {
 				if (index > 0) {
 					commandItems.push(linebreak());
 				}
@@ -349,9 +349,21 @@ const commands: Command[] = [
 			text(`, but I haven't implemented it yet.`),
 		],
 	},
+	{
+		name: 'exit',
+		description: 'Exits the terminal.',
+		isHidden: true,
+		noHelp: false,
+		prepare: (terminal: Terminal) => () => {
+			terminal.hide();
+			return null;
+		},
+	},
 ];
+commands.sort((a, b) => a.name.localeCompare(b.name));
 
-const visibleCommands = commands.filter(cmd => !cmd.isHidden && !cmd.noHelp);
+const visibleCommands = commands.filter(cmd => !cmd.isHidden);
+const helpCommands = commands.filter(cmd => !cmd.noHelp);
 
 const findCommand = (name: string): Command | undefined => {
 	return commands.find(cmd => cmd.name.toLowerCase() === name.toLowerCase());
@@ -362,5 +374,5 @@ const commandNotFound = (command: string) => [
 	text(` ${command}: command not found.`),
 ];
 
-export { commandNotFound, commands, findCommand };
+export { commandNotFound, commands, findCommand, helpCommands, visibleCommands };
 export type { Command, CommandResult, ResultItem };

@@ -1,9 +1,14 @@
-import { css, html } from 'lit';
+import { css, html, nothing } from 'lit';
 import { state } from 'lit/decorators/state.js';
 import { map } from 'lit/directives/map.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
-import { commandNotFound, type CommandResult, findCommand } from './services/commands.ts';
+import {
+	commandNotFound,
+	type CommandResult,
+	findCommand,
+	helpCommands,
+} from './services/commands.ts';
 import { parseCommand } from './services/parse-command.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
@@ -15,6 +20,13 @@ interface Response {
 export class Terminal extends Component {
 	static styles = css`
 		:host {
+			width: 100%;
+			height: 100%;
+			max-width: 850px;
+			max-height: 550px;
+		}
+		
+		.terminal {
 			background-color: #1e1e1e;
 			color: rgb(218, 218, 218);
 			font-family: VT323, monospace;
@@ -23,11 +35,6 @@ export class Terminal extends Component {
 			font-size: 1.5em;
 
 			box-shadow: 0 0 30px var(--glow-color);
-
-			width: 100%;
-			height: 100%;
-			max-width: 850px;
-			max-height: 550px;
 
 			display: flex;
 			flex-direction: column;
@@ -85,6 +92,10 @@ export class Terminal extends Component {
 	#inputRef: Ref<TerminalInput> = createRef();
 	#focusInput = this.focusInput.bind(this);
 	#historyRef: Ref<HTMLDivElement> = createRef();
+	#suggestionTimeout: number | null = null;
+
+	@state() hidden: boolean = false;
+	@state() responses: Response[] = [];
 
 	get historyElement() {
 		if (!this.#historyRef.value) {
@@ -99,8 +110,6 @@ export class Terminal extends Component {
 		}
 		return this.#inputRef.value;
 	}
-
-	@state() responses: Response[] = [];
 
 	addResponse(response: Response) {
 		this.responses = [...this.responses, response];
@@ -147,9 +156,26 @@ export class Terminal extends Component {
 		});
 	}
 
+	hide() {
+		this.hidden = true;
+	}
+
+	#makeRandomSuggestion() {
+		const randomeCommand = helpCommands[Math.floor(Math.random() * helpCommands.length)];
+		if (!randomeCommand) return;
+		this.inputElement.suggestPlaceholder(randomeCommand.name);
+	}
+
 	connectedCallback(): void {
 		super.connectedCallback();
 		this.addEventListener('click', this.#focusInput);
+
+		setTimeout(() => {
+			this.inputElement.suggestPlaceholder('help');
+		}, 4000);
+		this.#suggestionTimeout = window.setInterval(() => {
+			this.#makeRandomSuggestion();
+		}, 15_000);
 	}
 
 	firstUpdated(): void {
@@ -172,44 +198,50 @@ export class Terminal extends Component {
 	disconnectedCallback(): void {
 		super.disconnectedCallback();
 		this.removeEventListener('click', this.#focusInput);
+		this.#suggestionTimeout && clearInterval(this.#suggestionTimeout);
 	}
 
 	render() {
+		if (this.hidden) {
+			return nothing;
+		}
 		return html`
-			<div class="header">
-				<img class="icon" src="/assets/mh_sh_icon.svg" alt=">_MH"/>
-				<div class="title">
-					<span>${window.location.hostname} - Terminal</span>
+			<div class="terminal">
+				<div class="header">
+					<img class="icon" src="/assets/mh_sh_icon.svg" alt=">_MH"/>
+					<div class="title">
+						<span>${window.location.hostname} - Terminal</span>
+					</div>
 				</div>
-			</div>
-			<div class="body">
-				<!-- <div class="terminal-commands discrete-scrollbar">
-					<div class="commands-header">
-						Commands
-					</div>
-					<div id="commands-list">
-					</div>
-				</div> -->
-				<div class="terminal-content">
-					<div class="history" ${ref(this.#historyRef)}>
-						${map(
-							this.responses,
-							response => html`
-							<mh-terminal-response-item
-								.result=${response.result}
-								command-and-args=${response.commandAndArgs}
-								use-typewriter
-								>
-							</mh-terminal-response-item>
-						`,
-						)}
-					</div>
-					<div class="command-input">
-						<mh-terminal-input
-						 ${ref(this.#inputRef)}
-						 @submit=${this.onCommandSubmit}
-						>
-						</mh-terminal-input>
+				<div class="body">
+					<!-- <div class="terminal-commands discrete-scrollbar">
+						<div class="commands-header">
+							Commands
+						</div>
+						<div id="commands-list">
+						</div>
+					</div> -->
+					<div class="terminal-content">
+						<div class="history" ${ref(this.#historyRef)}>
+							${map(
+								this.responses,
+								response => html`
+								<mh-terminal-response-item
+									.result=${response.result}
+									command-and-args=${response.commandAndArgs}
+									use-typewriter
+									>
+								</mh-terminal-response-item>
+							`,
+							)}
+						</div>
+						<div class="command-input">
+							<mh-terminal-input
+							${ref(this.#inputRef)}
+							@submit=${this.onCommandSubmit}
+							>
+							</mh-terminal-input>
+						</div>
 					</div>
 				</div>
 			</div>
