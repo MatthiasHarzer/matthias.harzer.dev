@@ -10,12 +10,20 @@ import {
 	helpCommands,
 } from './services/commands.ts';
 import { parseCommand } from './services/parse-command.ts';
+import { type Color, rainbowProvider } from './services/rainbow.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
 interface Response {
 	result: CommandResult;
 	commandAndArgs: string;
 }
+
+const toHexColor = (color: Color) => {
+	const r = color[0].toString(16).padStart(2, '0');
+	const g = color[1].toString(16).padStart(2, '0');
+	const b = color[2].toString(16).padStart(2, '0');
+	return `#${r}${g}${b}`;
+};
 
 export class Terminal extends Component {
 	static styles = css`
@@ -24,8 +32,10 @@ export class Terminal extends Component {
 			height: 100%;
 			max-width: 850px;
 			max-height: 550px;
+
+			--glow-color: #6400FFFF;
 		}
-		
+
 		.terminal {
 			background-color: #1e1e1e;
 			color: rgb(218, 218, 218);
@@ -176,6 +186,12 @@ export class Terminal extends Component {
 		this.#suggestionTimeout = window.setInterval(() => {
 			this.#makeRandomSuggestion();
 		}, 15_000);
+		rainbowProvider.subscribe(() => {
+			const colorStr = toHexColor(rainbowProvider.value);
+
+			// This is not the ideal way to do this in Lit, but to prevent rerendering the entire component on every color change, we directly manipulate the style here.
+			this.style.setProperty('--glow-color', colorStr);
+		}, false);
 	}
 
 	firstUpdated(): void {

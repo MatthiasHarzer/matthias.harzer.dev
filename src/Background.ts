@@ -32,6 +32,7 @@ export class Background extends Component {
 			rgba(32, 33, 36, 1) 0%,
 			rgba(40, 42, 54, 1) 50%,
 			rgba(32, 33, 36, 1) 100%);
+			--max-opacity: 0.8;
 		}
 
 		.char {
@@ -40,7 +41,6 @@ export class Background extends Component {
 			overflow: hidden;
 			color: #50fa7b;
 			font-family: VT323, monospace;
-			/* animation: trail-appear 3s forwards; */
 		}
 
 		@keyframes fadein {
@@ -48,13 +48,13 @@ export class Background extends Component {
 				opacity: 0;
 			}
 			100% {
-				opacity: 1;
+				opacity: var(--max-opacity);
 			}
 		}
 
 		@keyframes fadeout {
 			0% {
-				opacity: 1;
+				opacity: var(--max-opacity);
 			}
 			100% {
 				opacity: 0;

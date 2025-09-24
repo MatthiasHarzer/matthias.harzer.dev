@@ -109,7 +109,7 @@ const StatefulMixin = <Base extends Constructor<Component>, State extends BaseSt
 
 		connectedCallback(): void {
 			super.connectedCallback();
-			this._stateObserver.subscribeHost(this);
+			this._stateObserver.subscribeHost(this, false);
 		}
 
 		disconnectedCallback() {
@@ -141,7 +141,7 @@ const SharedStateMixin = <Base extends Constructor<Component>, SharedState exten
 
 		connectedCallback(): void {
 			super.connectedCallback();
-			this._sharedState.subscribeHost(this);
+			this._sharedState.subscribeHost(this, false);
 		}
 
 		disconnectedCallback() {
@@ -198,8 +198,8 @@ const LocalStateMixin = <Base extends Constructor<Component>, LocalState extends
 
 		connectedCallback(): void {
 			super.connectedCallback();
-			this._localState.subscribeHost(this);
-			this._localState.subscribe(this.#handleStateUpdate);
+			this._localState.subscribeHost(this, false);
+			this._localState.subscribe(this.#handleStateUpdate, false);
 		}
 
 		disconnectedCallback() {
