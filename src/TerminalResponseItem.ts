@@ -2,9 +2,7 @@ import { css, html, type TemplateResult } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from './litutil/Component.ts';
-import type { CommandResult, ResultItem } from './services/commands.ts';
-
-const TYPEWRITER_CHARS_PER_SECOND = 300;
+import type { CommandResult, ResultItem } from './services/command-result.ts';
 
 const cutText = (text: string, maxLength: number) => {
 	if (maxLength === -1) {
@@ -22,7 +20,7 @@ export class TerminalResponseItem extends Component {
 			display: flex;
 			flex-direction: column;
 			gap: 0.2em;
-			padding-bottom: 0.3em;
+			padding: 0.2em 0;
 		}
 
 		.response {
@@ -230,9 +228,9 @@ export class TerminalResponseItem extends Component {
 		}
 	`;
 
-	@property({ type: Boolean, attribute: 'use-typewriter' }) useTypewriter = false;
-	@property({ type: String, attribute: 'command-and-args' }) commandAndArgs = '';
 	@property({ attribute: false }) result: CommandResult = [];
+	@property({ type: Number, attribute: 'typewriter-chars-per-second' }) typewriterCharsPerSecond =
+		-1;
 
 	@state() _displayedContent: TemplateResult<1> | TemplateResult<1>[] = html``;
 	#placeholderRender: TemplateResult<1> | TemplateResult<1>[] = html``;
@@ -242,7 +240,7 @@ export class TerminalResponseItem extends Component {
 
 		this.#placeholderRender = this.#renderResponse(this.result);
 
-		if (!this.useTypewriter) {
+		if (this.typewriterCharsPerSecond <= 0) {
 			this._displayedContent = this.#placeholderRender;
 			return;
 		}
@@ -292,7 +290,7 @@ export class TerminalResponseItem extends Component {
 			}
 
 			const delta = time - lastTime;
-			const charsToAdd = Math.floor((delta / 1000) * TYPEWRITER_CHARS_PER_SECOND);
+			const charsToAdd = Math.floor((delta / 1000) * this.typewriterCharsPerSecond);
 			if (charsToAdd === 0) {
 				requestAnimationFrame(frame);
 				return;
@@ -408,9 +406,6 @@ export class TerminalResponseItem extends Component {
 
 	render() {
 		return html`
-			<mh-terminal-section>
-				${this.commandAndArgs}
-			</mh-terminal-section>
 			<div class="response">
 				<div class="placeholder-render">
 					${this.#placeholderRender}

@@ -1,6 +1,7 @@
 import { Observable } from './reactive.ts';
 
-export type BaseObject = Record<string, unknown>;
+// biome-ignore lint/suspicious/noExplicitAny: any is needed to store the state
+export type BaseObject = Record<string, any>;
 
 export class ReactiveObject<T extends BaseObject> extends Observable<T> {
 	/**

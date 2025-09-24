@@ -1,119 +1,51 @@
 import type { Terminal } from '../Terminal.ts';
-
-interface ResultPart {
-	type:
-		| 'text'
-		| 'highlight'
-		| 'link'
-		| 'linebreak'
-		| 'button'
-		| 'paragraph'
-		| 'indentation'
-		| 'hover-highlight-block'
-		| 'emoji';
-}
-
-interface ResultText extends ResultPart {
-	type: 'text';
-	text: string;
-}
-
-interface ResultHighlight extends ResultPart {
-	type: 'highlight';
-	text: string;
-	highlightType?: string;
-}
-
-interface ResultLink extends ResultPart {
-	type: 'link';
-	text: string;
-	href: string;
-	highlightType?: string;
-}
-
-interface ResultLinebreak extends ResultPart {
-	type: 'linebreak';
-	height?: number; // in em
-}
-
-interface ResultButton extends ResultPart {
-	type: 'button';
-	text: string;
-	highlightType?: string;
-	action: () => void;
-}
-
-interface ResultParagraph extends ResultPart {
-	type: 'paragraph';
-	parts: ResultItem[];
-}
-
-interface ResultIndentation extends ResultPart {
-	type: 'indentation';
-	level: number; // number of indentation levels (1 level = 4 spaces)
-	parts: ResultItem[];
-}
-
-interface ResultHoverHighlightBlock extends ResultPart {
-	type: 'hover-highlight-block';
-	parts: ResultItem[];
-}
-
-interface ResultEmoji extends ResultPart {
-	type: 'emoji';
-	emoji: string; // the emoji character
-}
-
-type ResultItem =
-	| ResultText
-	| ResultHighlight
-	| ResultLink
-	| ResultLinebreak
-	| ResultButton
-	| ResultParagraph
-	| ResultIndentation
-	| ResultHoverHighlightBlock
-	| ResultEmoji;
-
-type CommandResult = ResultItem[];
-
-interface Command {
-	name: string;
-	description: string;
-	prepare: (terminal: Terminal) => (...args: string[]) => CommandResult | null;
-	isHidden?: boolean;
-	noHelp?: boolean;
-}
-
-const text = (text: string): ResultText => ({ type: 'text', text });
-const highlight = (text: string, highlightType?: string): ResultHighlight => ({
-	type: 'highlight',
+import {
+	button,
+	type Command,
+	type CommandResult,
+	emoji,
+	highlight,
+	hoverHighlightBlock,
+	indentation,
+	linebreak,
+	link,
+	paragraph,
+	type ResultItem,
 	text,
-	highlightType,
-});
-const link = (text: string, href: string, highlightType?: string): ResultLink => ({
-	type: 'link',
-	text,
-	href,
-	highlightType,
-});
-const linebreak = (height?: number): ResultLinebreak => ({ type: 'linebreak', height });
-const button = (text: string, action: () => void): ResultButton => ({
-	type: 'button',
-	text,
-	action,
-});
-const paragraph = (parts: ResultItem[]): ResultParagraph => ({ type: 'paragraph', parts });
-const indentation = (level: number, parts: ResultItem[]): ResultIndentation => ({
-	type: 'indentation',
-	level,
-	parts,
-});
-const hoverHighlightBlock = (parts: ResultItem[]): ResultHoverHighlightBlock => ({
-	type: 'hover-highlight-block',
-	parts,
-});
-const emoji = (emoji: string): ResultEmoji => ({ type: 'emoji', emoji });
+} from './command-result.ts';
+import type { BaseObject } from './reactive-object.ts';
+
+/**
+ * @param func
+ * @returns An array of tuples containing the parameter name and a boolean indicating if the parameter has a default value
+ * @source https://stackoverflow.com/a/9924463 (modified)
+ */
+// biome-ignore lint/suspicious/noExplicitAny: unknown function signature
+const getFunctionParameters = (func: (...args: any[]) => any): [string, boolean][] => {
+	const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
+	const fnStr = func.toString().replace(STRIP_COMMENTS, '');
+	const paramsStr = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).trim();
+
+	if (paramsStr.length === 0) return [];
+
+	const params = paramsStr.split(',').map(p => p.trim());
+
+	return params.map(p => {
+		const parts = p.split('=');
+		const hasDefault = parts.length > 1;
+		return [parts[0], hasDefault];
+	});
+};
+
+const paramsToString = (params: [string, boolean][]): string => {
+	return params.reduce((acc, [param, hasDefault]) => {
+		if (hasDefault) {
+			return `${acc} [${param}]`;
+		} else {
+			return `${acc} <${param}>`;
+		}
+	}, '');
+};
 
 const $ = (fn: (...args: string[]) => CommandResult) => () => fn;
 
@@ -315,9 +247,19 @@ const commands: Command[] = [
 				if (index > 0) {
 					commandItems.push(linebreak());
 				}
+
+				const params = getFunctionParameters(cmd.prepare(terminal));
+				const paramsStr = paramsToString(params);
+
+				const fullCommand = `${cmd.name} ${paramsStr}`.trim();
+
 				commandItems.push(
-					button(cmd.name, () => {
-						terminal.pasteCommand(cmd.name);
+					button(fullCommand, () => {
+						if (params.length > 0) {
+							terminal.pasteCommand(fullCommand);
+						} else {
+							terminal.pasteCommand(cmd.name);
+						}
 						terminal.focusInput();
 					}),
 					text(' - '),
@@ -354,9 +296,72 @@ const commands: Command[] = [
 		description: 'Exits the terminal.',
 		isHidden: true,
 		noHelp: false,
-		prepare: (terminal: Terminal) => () => {
-			terminal.hide();
+		prepare: (terminal: Terminal) => async () => {
+			const [response, success] = await terminal.prompt([
+				text('Are you sure you want to exit? (y/n)'),
+			]);
+			if (success && ['y', 'yes'].includes(response.toLowerCase())) {
+				terminal.hide();
+			} else {
+				return [text('Operation cancelled.')];
+			}
 			return null;
+		},
+	},
+	{
+		name: 'config',
+		description: 'Configure the terminal.',
+		isHidden: true,
+		noHelp: false,
+		prepare: (terminal: Terminal) => (action: string, configKey: string, configValue: string) => {
+			if (!['set', 'get', 'list'].includes(action)) {
+				return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
+			}
+
+			switch (action) {
+				case 'list':
+					return Object.keys(terminal.localState).flatMap((key, index) => {
+						const value = (terminal.localState as BaseObject)[key];
+						return [
+							index > 0 ? linebreak() : null,
+							button(key, () => {
+								terminal.pasteCommand(`config set ${key} `);
+								terminal.focusInput();
+							}),
+							text(' = '),
+							highlight(String(value), 'config-value'),
+						].filter(item => item !== null);
+					});
+				case 'set': {
+					if (!(configKey in terminal.localState)) {
+						return [text(`Error: Unknown config key "${configKey}".`)];
+					}
+
+					terminal.setConfig(configKey, configValue);
+					return [
+						text(`Set config key "`),
+						highlight(configKey, 'config-key'),
+						text(`" to "`),
+						highlight(String(configValue), 'config-value'),
+						text(`".`),
+					];
+				}
+				case 'get': {
+					if (!(configKey in terminal.localState)) {
+						return [text(`Error: Unknown config key "${configKey}".`)];
+					}
+					const value = (terminal.localState as BaseObject)[configKey];
+					return [
+						text(`Config key "`),
+						highlight(configKey, 'config-key'),
+						text(`" is set to "`),
+						highlight(String(value), 'config-value'),
+						text(`".`),
+					];
+				}
+				default:
+					return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
+			}
 		},
 	},
 ];
@@ -375,4 +380,3 @@ const commandNotFound = (command: string) => [
 ];
 
 export { commandNotFound, commands, findCommand, helpCommands, visibleCommands };
-export type { Command, CommandResult, ResultItem };

@@ -71,6 +71,7 @@ export class TerminalInput extends Component {
 
 				if (this.#input.placeholder.length === 0 || this.#input.value.length > 0) {
 					clearInterval(id);
+					this.#input.placeholder = '';
 					resolve();
 				}
 			}, charDelayMs);

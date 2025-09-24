@@ -174,13 +174,13 @@ const LocalStateMixin = <Base extends Constructor<Component>, LocalState extends
 				this.storedState ?? initialState,
 			);
 
-		private get storedState(): LocalState {
+		private get storedState(): LocalState | null {
 			const storedState = localStorage.getItem(this.storageKey);
 			if (storedState) {
 				return JSON.parse(storedState);
 			}
 
-			return {} as LocalState;
+			return null;
 		}
 
 		get localState(): LocalState {
