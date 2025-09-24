@@ -22,12 +22,12 @@ const $ = (fn: (...args: string[]) => CommandResult) => () => fn;
 
 const basicCommandUsageDetails = (terminal: Terminal, command: Command): ResultItem[] => {
 	return [
-		mentionCommandName(terminal, command),
+		mentionCommandName(terminal, command.name),
 		text(' - '),
 		text(command.description ?? 'No description available.'),
 		linebreak(1),
 		text('Usage: '),
-		mentionCommandUsage(terminal, command),
+		mentionCommandUsage(terminal, command, command.name),
 	];
 };
 
@@ -93,7 +93,7 @@ class HelpCommand implements Command {
 				commandItems.push(linebreak());
 			}
 			commandItems.push(
-				mentionCommandName(terminal, cmd),
+				mentionCommandName(terminal, cmd.name),
 				text(' - '),
 				text(cmd.description ?? 'No description available.'),
 			);
@@ -102,7 +102,7 @@ class HelpCommand implements Command {
 		commandItems.push(
 			linebreak(1),
 			text('Type '),
-			mentionCommandName(terminal, this, 'help <command>'),
+			mentionCommandName(terminal, 'help <command>', 'help '),
 			text(' to get more information about a specific command.'),
 		);
 
@@ -126,7 +126,7 @@ class HelpCommand implements Command {
 			const execute = command.provideHelpDetails(terminal);
 
 			const additionalDetails = await execute(...remainingArgs);
-			if (additionalDetails === null) {
+			if (additionalDetails === null || additionalDetails.length === 0) {
 				return details;
 			}
 
@@ -374,6 +374,9 @@ const commands: Command[] = [
 		prepare:
 			(terminal: Terminal) =>
 			(action: string, key: string | null = null, value: string | null = null) => {
+				if (!action) {
+					return [text('Error: No action provided. Use "set", "get" or "list".')];
+				}
 				if (!['set', 'get', 'list'].includes(action)) {
 					return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
 				}
@@ -424,30 +427,79 @@ const commands: Command[] = [
 		provideHelpDetails:
 			(terminal: Terminal) =>
 			(...args: string[]) => {
-				if (args.length === 0) {
-					return [
-						text('Actions:'),
-						linebreak(),
-						indentation(2, [
-							button('list', () => {
-								terminal.pasteCommand('config list');
-							}),
-							text(' - Lists all config keys and their values.'),
+				switch (args.length) {
+					case 0: {
+						return [
+							text('Actions:'),
 							linebreak(),
-							button('get <key>', () => {
-								terminal.pasteCommand('config get ');
-							}),
-							text(' - Gets the value of the specified config key.'),
-							linebreak(),
-							button('set <key> <value>', () => {
-								terminal.pasteCommand('config set ');
-							}),
-							text(' - Sets the value of the specified config key.'),
-						]),
-					];
+							indentation(2, [
+								button('list', () => {
+									terminal.pasteCommand('config list');
+								}),
+								text(' - Lists all config keys and their values.'),
+								linebreak(),
+								button('get <key>', () => {
+									terminal.pasteCommand('config get ');
+								}),
+								text(' - Gets the value of the specified config key.'),
+								linebreak(),
+								button('set <key> <value>', () => {
+									terminal.pasteCommand('config set ');
+								}),
+								text(' - Sets the value of the specified config key.'),
+							]),
+							linebreak(1),
+							text('Use '),
+							mentionCommandName(terminal, 'help config <action>', 'help config '),
+							text(' to get more information about a specific action.'),
+						];
+					}
+					case 1: {
+						switch (args[0]) {
+							case 'set':
+								return [
+									text('Sets the value of a config key.'),
+									linebreak(),
+									text('Example: '),
+									linebreak(),
+									indentation(2, [
+										mentionCommandName(
+											terminal,
+											'config set glowColor purple',
+											'config set glowColor purple',
+										),
+										text(' - Sets the glow color of the terminal to purple.'),
+									]),
+								];
+							case 'get':
+								return [
+									text('Gets the value of a config key.'),
+									linebreak(),
+									text('Example: '),
+									linebreak(),
+									indentation(2, [
+										mentionCommandName(terminal, 'config get glowColor', 'config get glowColor'),
+										text(' - Gets the glow color of the terminal.'),
+									]),
+								];
+							case 'list':
+								return [
+									text('Lists all config keys and their values.'),
+									linebreak(),
+									text('Example: '),
+									linebreak(),
+									indentation(2, [
+										mentionCommandName(terminal, 'config list', 'config list'),
+										text(' - Lists all config keys and their values.'),
+									]),
+								];
+							default:
+								return [text(`Error: Unknown action "${args[0]}". Use "set", "get" or "list".`)];
+						}
+					}
+					default:
+						return [text('No additional help available for this action.')];
 				}
-
-				return [];
 			},
 	},
 ];

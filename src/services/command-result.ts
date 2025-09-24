@@ -126,25 +126,29 @@ const emoji = (emoji: string): ResultEmoji => ({ type: 'emoji', emoji });
 
 const mentionCommandName = (
 	terminal: Terminal,
-	command: Command,
-	displayText?: string,
+	commandName: string,
+	insertText?: string,
 ): ResultButton =>
 	button(
-		displayText ?? command.name,
+		commandName,
 		() => {
-			terminal.pasteCommand(command.name);
+			terminal.pasteCommand(insertText ?? commandName);
 		},
 		'command',
 	);
 
-const mentionCommandUsage = (terminal: Terminal, command: Command): ResultButton => {
+const mentionCommandUsage = (
+	terminal: Terminal,
+	command: Command,
+	insertText?: string,
+): ResultButton => {
 	const params = getFunctionParameters(command.prepare(terminal));
 	const paramsString = paramsToString(params);
 	const completeCommand = `${command.name} ${paramsString}`.trim();
 	return button(
 		completeCommand,
 		() => {
-			terminal.pasteCommand(completeCommand);
+			terminal.pasteCommand(insertText ?? completeCommand);
 		},
 		'command',
 	);
