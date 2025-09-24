@@ -3,7 +3,6 @@ import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from './litutil/Component.ts';
 import type { CommandResult, ResultItem } from './services/commands.ts';
-import type { Terminal } from './Terminal.ts';
 
 const TYPEWRITER_CHARS_PER_SECOND = 300;
 
@@ -23,6 +22,7 @@ export class TerminalResponseItem extends Component {
 			display: flex;
 			flex-direction: column;
 			gap: 0.2em;
+			padding-bottom: 0.3em;
 		}
 
 		.response {
@@ -143,7 +143,7 @@ export class TerminalResponseItem extends Component {
   			font-weight: lighter;
 			}
 		}
-		
+
 		a.highlight {
 			color: #bd93f9;
 		}
@@ -163,8 +163,6 @@ export class TerminalResponseItem extends Component {
 				background-size: 100% 2px;
 			}
 		}
-
-
 
 		button {
 			background-color: transparent;
@@ -219,7 +217,6 @@ export class TerminalResponseItem extends Component {
 	`;
 
 	@property({ type: Boolean, attribute: 'use-typewriter' }) useTypewriter = false;
-	@property({ attribute: false }) terminal: Terminal | null = null;
 	@property({ type: String, attribute: 'command-and-args' }) commandAndArgs = '';
 	@property({ attribute: false }) result: CommandResult = [];
 
@@ -354,12 +351,8 @@ export class TerminalResponseItem extends Component {
 			case 'linebreak':
 				return [html`<div class="linebreak" style="height: ${part.height ?? 0}em;"></div>`, 1];
 			case 'button': {
-				const terminal = this.terminal;
-				if (!terminal) {
-					throw new Error('TerminalResponseRenderer: terminal is not set');
-				}
 				return [
-					html`<button class="highlight ${part.highlightType ?? ''}" @click=${() => part.action(terminal)}>${cutText(part.text, maxCharsToRender)}</button>`,
+					html`<button class="highlight ${part.highlightType ?? ''}" @click=${() => part.action()}>${cutText(part.text, maxCharsToRender)}</button>`,
 					part.text.length,
 				];
 			}

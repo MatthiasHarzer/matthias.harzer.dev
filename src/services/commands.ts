@@ -39,7 +39,7 @@ interface ResultButton extends ResultPart {
 	type: 'button';
 	text: string;
 	highlightType?: string;
-	action: (terminal: Terminal) => void;
+	action: () => void;
 }
 
 interface ResultParagraph extends ResultPart {
@@ -73,7 +73,7 @@ type CommandResult = ResultItem[];
 interface Command {
 	name: string;
 	description: string;
-	execute: (...args: string[]) => CommandResult;
+	prepare: (terminal: Terminal) => (...args: string[]) => CommandResult | null;
 	isHidden?: boolean;
 	noHelp?: boolean;
 }
@@ -91,7 +91,7 @@ const link = (text: string, href: string, highlightType?: string): ResultLink =>
 	highlightType,
 });
 const linebreak = (height?: number): ResultLinebreak => ({ type: 'linebreak', height });
-const button = (text: string, action: (terminal: Terminal) => void): ResultButton => ({
+const button = (text: string, action: () => void): ResultButton => ({
 	type: 'button',
 	text,
 	action,
@@ -107,11 +107,63 @@ const hoverHighlightBlock = (parts: ResultItem[]): ResultHoverHighlightBlock => 
 	parts,
 });
 
+const $ = (fn: (...args: string[]) => CommandResult) => () => fn;
+
+class WhoamiCommand implements Command {
+	name = 'whoami';
+	description = 'What do you think?';
+	isHidden = false;
+	noHelp = false;
+
+	#counter = 0;
+
+	prepare = (terminal: Terminal) => {
+		return () => {
+			this.#counter++;
+			switch (this.#counter) {
+				case 1:
+					return [text(`I'm a terminal, what do you expect me to do? Try again.`)];
+				case 2:
+					return [text(`I already told you, I'm a terminal. Try something else.`)];
+				case 3:
+					return [text(`Stop it.`)];
+				case 4: {
+					const availableCommands = visibleCommands.filter(
+						cmd => !['help', 'whoami'].includes(cmd.name),
+					);
+					const randomCommand =
+						availableCommands[Math.floor(Math.random() * availableCommands.length)];
+					return [
+						text(`Are you looking for the `),
+						button(randomCommand.name, () => {
+							terminal.pasteCommand(randomCommand.name);
+							terminal.focusInput();
+						}),
+						text(` command?`),
+					];
+				}
+				case 5:
+					return [
+						text(`Alright, alright. You can find my source code at `),
+						link(
+							'github.com/MatthiasHarzer/matthias.harzer.dev',
+							'https://github.com/MatthiasHarzer/matthias.harzer.dev',
+						),
+						text(`. Happy now?`),
+					];
+				default:
+					this.#counter = 0;
+					return [text(`I'm not going to tell you again.`)];
+			}
+		};
+	};
+}
+
 const commands: Command[] = [
 	{
 		name: 'who',
 		description: 'Displays information about me.',
-		execute: () => {
+		prepare: $(() => {
 			const birthday = new Date(2002, 10, 3);
 			const now = new Date();
 			let age = now.getFullYear() - birthday.getFullYear();
@@ -131,12 +183,12 @@ const commands: Command[] = [
 				highlight('web development and design'),
 				text('.'),
 			];
-		},
+		}),
 	},
 	{
 		name: 'tech',
 		description: 'Lists technologies, I use for development.',
-		execute: () => {
+		prepare: $(() => {
 			return [
 				text('I have experience in building frontend applications with '),
 				link('Lit', 'https://lit.dev/', 'lit'),
@@ -158,12 +210,12 @@ const commands: Command[] = [
 				link('C#', 'https://dotnet.microsoft.com/en-us/languages/csharp/', 'cs'),
 				text('.'),
 			];
-		},
+		}),
 	},
 	{
 		name: 'career',
 		description: 'Displays my career so far.',
-		execute: () => {
+		prepare: $(() => {
 			return [
 				text("I'm studying at the "),
 				link('Hochschule Karlsruhe', 'https://www.h-ka.de/', 'hka'),
@@ -220,37 +272,35 @@ const commands: Command[] = [
 						]),
 					]),
 				]),
-				linebreak(),
 			];
-		},
+		}),
 	},
 	{
 		name: 'github',
 		description: 'Link to my GitHub profile.',
-		execute: () => {
+		prepare: $(() => {
 			return [
 				text('You can find my project at '),
 				link('github.com/MatthiasHarzer', 'https://github.com/MatthiasHarzer', 'github'),
 				text('.'),
 			];
-		},
+		}),
 	},
 	{
 		name: 'contact',
 		description: 'How to reach me.',
-		execute: () => {
+		prepare: $(() => {
 			return [
 				text('You can contact me via mail at '),
 				link('matthias.harzer03@gmail.com', 'mailto:matthias.harzer03@gmail.com'),
 				text('.'),
 			];
-		},
+		}),
 	},
 	{
 		name: 'help',
 		description: 'Lists all available commands.',
-		execute: () => {
-			const visibleCommands = commands.filter(cmd => !cmd.isHidden && !cmd.noHelp);
+		prepare: terminal => () => {
 			visibleCommands.sort((a, b) => a.name.localeCompare(b.name));
 			const commandItems: ResultItem[] = [];
 			visibleCommands.forEach((cmd, index) => {
@@ -258,7 +308,7 @@ const commands: Command[] = [
 					commandItems.push(linebreak());
 				}
 				commandItems.push(
-					button(cmd.name, terminal => {
+					button(cmd.name, () => {
 						terminal.pasteCommand(cmd.name);
 						terminal.focusInput();
 					}),
@@ -269,7 +319,20 @@ const commands: Command[] = [
 			return commandItems;
 		},
 	},
+	{
+		name: 'clear',
+		description: 'Clears the terminal.',
+		prepare: (terminal: Terminal) => {
+			return () => {
+				terminal.clear();
+				return null;
+			};
+		},
+	},
+	new WhoamiCommand(),
 ];
+
+const visibleCommands = commands.filter(cmd => !cmd.isHidden && !cmd.noHelp);
 
 const findCommand = (name: string): Command | undefined => {
 	return commands.find(cmd => cmd.name.toLowerCase() === name.toLowerCase());

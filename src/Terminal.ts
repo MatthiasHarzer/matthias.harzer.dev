@@ -68,7 +68,6 @@ export class Terminal extends Component {
 			height: 100%;
 
 			.history {
-				flex: 1 1 auto;
 				overflow: auto;
 				padding-right: 5px;
 
@@ -123,6 +122,10 @@ export class Terminal extends Component {
 		this.focusInput();
 	}
 
+	clear() {
+		this.responses = [];
+	}
+
 	onCommandSubmit(event: CustomEvent<{ value: string }>) {
 		const commandAndArgs = event.detail.value.trim();
 		const { command: commandName, args } = parseCommand(commandAndArgs);
@@ -135,7 +138,9 @@ export class Terminal extends Component {
 			return;
 		}
 
-		const result = command.execute(...args);
+		const execute = command.prepare(this);
+		const result = execute(...args);
+		if (result === null) return;
 		this.addResponse({
 			result,
 			commandAndArgs: commandAndArgs,
@@ -150,7 +155,9 @@ export class Terminal extends Component {
 	firstUpdated(): void {
 		const cmd = findCommand('help');
 		if (cmd) {
-			const result = cmd.execute();
+			const execute = cmd.prepare(this);
+			const result = execute();
+			if (result === null) return;
 			this.addResponse({
 				result,
 				commandAndArgs: 'career',
@@ -191,7 +198,6 @@ export class Terminal extends Component {
 							<mh-terminal-response-item
 								.result=${response.result}
 								command-and-args=${response.commandAndArgs}
-								.terminal=${this}
 								use-typewriter
 								>
 							</mh-terminal-response-item>
