@@ -9,7 +9,8 @@ interface ResultPart {
 		| 'button'
 		| 'paragraph'
 		| 'indentation'
-		| 'hover-highlight-block';
+		| 'hover-highlight-block'
+		| 'emoji';
 }
 
 interface ResultText extends ResultPart {
@@ -58,6 +59,11 @@ interface ResultHoverHighlightBlock extends ResultPart {
 	parts: ResultItem[];
 }
 
+interface ResultEmoji extends ResultPart {
+	type: 'emoji';
+	emoji: string; // the emoji character
+}
+
 type ResultItem =
 	| ResultText
 	| ResultHighlight
@@ -66,7 +72,8 @@ type ResultItem =
 	| ResultButton
 	| ResultParagraph
 	| ResultIndentation
-	| ResultHoverHighlightBlock;
+	| ResultHoverHighlightBlock
+	| ResultEmoji;
 
 type CommandResult = ResultItem[];
 
@@ -106,6 +113,7 @@ const hoverHighlightBlock = (parts: ResultItem[]): ResultHoverHighlightBlock => 
 	type: 'hover-highlight-block',
 	parts,
 });
+const emoji = (emoji: string): ResultEmoji => ({ type: 'emoji', emoji });
 
 const $ = (fn: (...args: string[]) => CommandResult) => () => fn;
 
@@ -330,6 +338,17 @@ const commands: Command[] = [
 		},
 	},
 	new WhoamiCommand(),
+	{
+		name: 'mh',
+		description: 'Secret command.',
+		isHidden: true,
+		noHelp: true,
+		prepare: () => () => [
+			text('You found the secret command '),
+			emoji('🎉'),
+			text(`, but I haven't implemented it yet.`),
+		],
+	},
 ];
 
 const visibleCommands = commands.filter(cmd => !cmd.isHidden && !cmd.noHelp);

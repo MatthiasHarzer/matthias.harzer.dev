@@ -214,6 +214,20 @@ export class TerminalResponseItem extends Component {
 				background-color: rgba(68, 71, 90, 0.3);
 			}
 		}
+
+		.pixel-emoji{
+			display: inline-block;
+			max-width: 1em;
+			max-height: 1em;
+			vertical-align: middle;
+			padding-bottom: 0.15em;
+
+			image-rendering: pixelated;
+			image-rendering: -moz-crisp-edges;
+			image-rendering: -o-crisp-edges;
+			image-rendering: -webkit-optimize-contrast;
+			image-rendering: optimize-contrast;
+		}
 	`;
 
 	@property({ type: Boolean, attribute: 'use-typewriter' }) useTypewriter = false;
@@ -376,6 +390,14 @@ export class TerminalResponseItem extends Component {
 					maxCharsToRender,
 				);
 				return [html`<div class="hover-highlight-block">${renderedParts}</div>`, totalLength];
+			}
+			case 'emoji': {
+				switch (part.emoji) {
+					case '🎉':
+						return [html`<img src="/assets/tada.webp" alt="🎉" class="pixel-emoji" />`, 1];
+					default:
+						return [html`<span>${part.emoji}</span>`, 1];
+				}
 			}
 		}
 	}
