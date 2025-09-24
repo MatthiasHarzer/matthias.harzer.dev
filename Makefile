@@ -1,10 +1,13 @@
 qa: analyze test
 
-analyze: npm run analyze
+analyze:
+	@npm run analyze
 
-test: npm run test
+test:
+	@npm run test
 
-build: npm run build
+build:
+	@npm run build
 
 .PHONY: qa \
 				analyze \
