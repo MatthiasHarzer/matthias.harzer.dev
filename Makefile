@@ -1,15 +1,19 @@
+install-dependencies:
+	@npm ci
+
 qa: analyze test
 
-analyze:
+analyze: install-dependencies
 	@npm run analyze
 
-test:
+test: install-dependencies
 	@npm run test
 
-build:
+build: install-dependencies
 	@npm run build
 
 .PHONY: qa \
 				analyze \
 				test \
-				build
+				build \
+				install-dependencies
