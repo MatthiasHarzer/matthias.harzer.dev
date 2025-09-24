@@ -9,6 +9,8 @@ import {
 	indentation,
 	linebreak,
 	link,
+	mentionCommandName,
+	mentionCommandUsage,
 	paragraph,
 	type ResultItem,
 	text,
@@ -16,39 +18,18 @@ import {
 import { configService } from './config.ts';
 import type { BaseObject } from './reactive-object.ts';
 
-/**
- * @param func
- * @returns An array of tuples containing the parameter name and a boolean indicating if the parameter has a default value
- * @source https://stackoverflow.com/a/9924463 (modified)
- */
-// biome-ignore lint/suspicious/noExplicitAny: unknown function signature
-const getFunctionParameters = (func: (...args: any[]) => any): [string, boolean][] => {
-	const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
-	const fnStr = func.toString().replace(STRIP_COMMENTS, '');
-	const paramsStr = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).trim();
-
-	if (paramsStr.length === 0) return [];
-
-	const params = paramsStr.split(',').map(p => p.trim());
-
-	return params.map(p => {
-		const parts = p.split('=');
-		const hasDefault = parts.length > 1;
-		return [parts[0].trim(), hasDefault];
-	});
-};
-
-const paramsToString = (params: [string, boolean][]): string => {
-	return params.reduce((acc, [param, hasDefault]) => {
-		if (hasDefault) {
-			return `${acc} [${param}]`;
-		} else {
-			return `${acc} <${param}>`;
-		}
-	}, '');
-};
-
 const $ = (fn: (...args: string[]) => CommandResult) => () => fn;
+
+const basicCommandUsageDetails = (terminal: Terminal, command: Command): ResultItem[] => {
+	return [
+		mentionCommandName(terminal, command),
+		text(' - '),
+		text(command.description ?? 'No description available.'),
+		linebreak(1),
+		text('Usage: '),
+		mentionCommandUsage(terminal, command),
+	];
+};
 
 class WhoamiCommand implements Command {
 	name = 'whoami';
@@ -78,7 +59,6 @@ class WhoamiCommand implements Command {
 						text(`Are you looking for the `),
 						button(randomCommand.name, () => {
 							terminal.pasteCommand(randomCommand.name);
-							terminal.focusInput();
 						}),
 						text(` command?`),
 					];
@@ -98,6 +78,130 @@ class WhoamiCommand implements Command {
 			}
 		};
 	};
+}
+
+class HelpCommand implements Command {
+	name = 'help';
+	description = 'Lists all available commands.';
+	isHidden = false;
+	noHelp = false;
+
+	#overview(terminal: Terminal): CommandResult {
+		const commandItems: ResultItem[] = [text('Available commands:'), linebreak(1)];
+		helpCommands.forEach((cmd, index) => {
+			if (index > 0) {
+				commandItems.push(linebreak());
+			}
+			commandItems.push(
+				mentionCommandName(terminal, cmd),
+				text(' - '),
+				text(cmd.description ?? 'No description available.'),
+			);
+		});
+
+		commandItems.push(
+			linebreak(1),
+			text('Type '),
+			mentionCommandName(terminal, this, 'help <command>'),
+			text(' to get more information about a specific command.'),
+		);
+
+		return commandItems;
+	}
+
+	async #details(terminal: Terminal, args: string[]): Promise<CommandResult | null> {
+		if (args.length === 0) {
+			return [];
+		}
+
+		const commandName = args[0];
+		const remainingArgs = args.slice(1);
+		const command = findCommand(commandName);
+		if (!command) {
+			return [highlight('error:', 'error'), text(` ${commandName}: command not found.`)];
+		}
+
+		if (command.provideHelpDetails) {
+			const details = basicCommandUsageDetails(terminal, command);
+			const execute = command.provideHelpDetails(terminal);
+
+			const additionalDetails = await execute(...remainingArgs);
+			if (additionalDetails === null) {
+				return details;
+			}
+
+			return [...details, linebreak(1), ...additionalDetails];
+		}
+
+		return [
+			...basicCommandUsageDetails(terminal, command),
+			linebreak(1.5),
+			text('No additional help available for this command.'),
+		];
+	}
+
+	prepare(terminal: Terminal) {
+		return async (...command: string[]) => {
+			if (command.length === 0) {
+				return this.#overview(terminal);
+			}
+			return await this.#details(terminal, command);
+		};
+	}
+
+	provideHelpDetails(terminal: Terminal) {
+		return (...args: string[]) => {
+			if (args.length === 0) {
+				return [
+					text('Examples:'),
+					linebreak(),
+					indentation(2, [
+						button('help', () => {
+							terminal.pasteCommand('help');
+						}),
+						text(' - Lists all available commands.'),
+						linebreak(),
+						button('help config', () => {
+							terminal.pasteCommand('help config');
+						}),
+						text(' - Displays detailed information about the "config" command.'),
+					]),
+				];
+			}
+			return [];
+		};
+	}
+}
+
+class ExitCommand implements Command {
+	name = 'exit';
+	description = 'Exits the terminal.';
+	isHidden = true;
+	noHelp = false;
+
+	prepare(terminal: Terminal) {
+		return async () => {
+			const [response, success] = await terminal.prompt([
+				text('Are you sure you want to exit? (y/n)'),
+			]);
+			if (success && ['y', 'yes'].includes(response.toLowerCase())) {
+				terminal.hide();
+			} else {
+				return [text('Operation cancelled.')];
+			}
+			return null;
+		};
+	}
+
+	provideHelpDetails() {
+		return () => {
+			return [
+				text('Exits the terminal. You will be prompted for confirmation.'),
+				linebreak(),
+				text('To use the terminal again, refresh the page.'),
+			];
+		};
+	}
 }
 
 const commands: Command[] = [
@@ -238,38 +342,7 @@ const commands: Command[] = [
 			];
 		}),
 	},
-	{
-		name: 'help',
-		description: 'Lists all available commands.',
-		prepare: terminal => () => {
-			helpCommands;
-			const commandItems: ResultItem[] = [];
-			helpCommands.forEach((cmd, index) => {
-				if (index > 0) {
-					commandItems.push(linebreak());
-				}
-
-				const params = getFunctionParameters(cmd.prepare(terminal));
-				const paramsStr = paramsToString(params);
-
-				const fullCommand = `${cmd.name} ${paramsStr}`.trim();
-
-				commandItems.push(
-					button(fullCommand, () => {
-						if (params.length > 0) {
-							terminal.pasteCommand(fullCommand);
-						} else {
-							terminal.pasteCommand(cmd.name);
-						}
-						terminal.focusInput();
-					}),
-					text(' - '),
-					text(cmd.description ?? 'No description available.'),
-				);
-			});
-			return commandItems;
-		},
-	},
+	new HelpCommand(),
 	{
 		name: 'clear',
 		description: 'Clears the terminal.',
@@ -292,23 +365,7 @@ const commands: Command[] = [
 			text(`, but I haven't implemented it yet.`),
 		],
 	},
-	{
-		name: 'exit',
-		description: 'Exits the terminal.',
-		isHidden: true,
-		noHelp: false,
-		prepare: (terminal: Terminal) => async () => {
-			const [response, success] = await terminal.prompt([
-				text('Are you sure you want to exit? (y/n)'),
-			]);
-			if (success && ['y', 'yes'].includes(response.toLowerCase())) {
-				terminal.hide();
-			} else {
-				return [text('Operation cancelled.')];
-			}
-			return null;
-		},
-	},
+	new ExitCommand(),
 	{
 		name: 'config',
 		description: 'Configure the terminal.',
@@ -316,7 +373,7 @@ const commands: Command[] = [
 		noHelp: false,
 		prepare:
 			(terminal: Terminal) =>
-			(action: string, configKey: string | null = null, configValue: string | null = null) => {
+			(action: string, key: string | null = null, value: string | null = null) => {
 				if (!['set', 'get', 'list'].includes(action)) {
 					return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
 				}
@@ -329,33 +386,32 @@ const commands: Command[] = [
 								index > 0 ? linebreak() : null,
 								button(key, () => {
 									terminal.pasteCommand(`config set ${key} `);
-									terminal.focusInput();
 								}),
 								text(' = '),
 								highlight(String(value), 'config-value'),
 							].filter(item => item !== null);
 						});
 					case 'set': {
-						if (configKey === null || configValue === null) {
+						if (key === null || value === null) {
 							return [text('Error: No config key or value provided.')];
 						}
-						configService.setKeyValue(configKey, configValue);
+						configService.setKeyValue(key, value);
 						return [
 							text(`Set config key "`),
-							highlight(configKey, 'config-key'),
+							highlight(key, 'config-key'),
 							text(`" to "`),
-							highlight(String(configValue), 'config-value'),
+							highlight(String(value), 'config-value'),
 							text(`".`),
 						];
 					}
 					case 'get': {
-						if (configKey === null) {
+						if (key === null) {
 							return [text('Error: No config key provided.')];
 						}
-						const value = configService.getKeyValue(configKey);
+						const value = configService.getKeyValue(key);
 						return [
 							text(`Config key "`),
-							highlight(configKey, 'config-key'),
+							highlight(key, 'config-key'),
 							text(`" is set to "`),
 							highlight(String(value), 'config-value'),
 							text(`".`),
@@ -364,6 +420,34 @@ const commands: Command[] = [
 					default:
 						return [text(`Error: Unknown action "${action}". Use "set", "get" or "list".`)];
 				}
+			},
+		provideHelpDetails:
+			(terminal: Terminal) =>
+			(...args: string[]) => {
+				if (args.length === 0) {
+					return [
+						text('Actions:'),
+						linebreak(),
+						indentation(2, [
+							button('list', () => {
+								terminal.pasteCommand('config list');
+							}),
+							text(' - Lists all config keys and their values.'),
+							linebreak(),
+							button('get <key>', () => {
+								terminal.pasteCommand('config get ');
+							}),
+							text(' - Gets the value of the specified config key.'),
+							linebreak(),
+							button('set <key> <value>', () => {
+								terminal.pasteCommand('config set ');
+							}),
+							text(' - Sets the value of the specified config key.'),
+						]),
+					];
+				}
+
+				return [];
 			},
 	},
 ];

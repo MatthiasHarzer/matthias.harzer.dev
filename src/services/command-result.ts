@@ -1,4 +1,5 @@
 import type { Terminal } from '../Terminal.ts';
+import { getFunctionParameters, paramsToString } from './function-params.ts';
 
 interface ResultPart {
 	type:
@@ -81,12 +82,15 @@ type CommandExecuteFunction = (
 	...args: string[]
 ) => CommandResult | null | Promise<CommandResult | null>;
 
+type PrepareCommandFunction = (terminal: Terminal) => CommandExecuteFunction;
+
 interface Command {
 	name: string;
 	description: string;
-	prepare: (terminal: Terminal) => CommandExecuteFunction;
+	prepare: PrepareCommandFunction;
 	isHidden?: boolean;
 	noHelp?: boolean;
+	provideHelpDetails?: PrepareCommandFunction;
 }
 
 const text = (text: string): ResultText => ({ type: 'text', text });
@@ -102,10 +106,11 @@ const link = (text: string, href: string, highlightType?: string): ResultLink =>
 	highlightType,
 });
 const linebreak = (height?: number): ResultLinebreak => ({ type: 'linebreak', height });
-const button = (text: string, action: () => void): ResultButton => ({
+const button = (text: string, action: () => void, highlightType?: string): ResultButton => ({
 	type: 'button',
 	text,
 	action,
+	highlightType,
 });
 const paragraph = (parts: ResultItem[]): ResultParagraph => ({ type: 'paragraph', parts });
 const indentation = (level: number, parts: ResultItem[]): ResultIndentation => ({
@@ -119,6 +124,32 @@ const hoverHighlightBlock = (parts: ResultItem[]): ResultHoverHighlightBlock => 
 });
 const emoji = (emoji: string): ResultEmoji => ({ type: 'emoji', emoji });
 
+const mentionCommandName = (
+	terminal: Terminal,
+	command: Command,
+	displayText?: string,
+): ResultButton =>
+	button(
+		displayText ?? command.name,
+		() => {
+			terminal.pasteCommand(command.name);
+		},
+		'command',
+	);
+
+const mentionCommandUsage = (terminal: Terminal, command: Command): ResultButton => {
+	const params = getFunctionParameters(command.prepare(terminal));
+	const paramsString = paramsToString(params);
+	const completeCommand = `${command.name} ${paramsString}`.trim();
+	return button(
+		completeCommand,
+		() => {
+			terminal.pasteCommand(completeCommand);
+		},
+		'command',
+	);
+};
+
 export {
 	button,
 	emoji,
@@ -127,6 +158,8 @@ export {
 	indentation,
 	linebreak,
 	link,
+	mentionCommandName,
+	mentionCommandUsage,
 	paragraph,
 	text,
 };
