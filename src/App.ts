@@ -1,5 +1,8 @@
 import { css, html } from 'lit';
 import { Component } from './litutil/Component.ts';
+import { configService } from './services/config.ts';
+import { faviconSetter } from './services/favicon-setter.ts';
+import { rainbowProvider } from './services/rainbow.ts';
 
 export class App extends Component {
 	static styles = css`
@@ -22,6 +25,25 @@ export class App extends Component {
 			align-items: center;
 		}
 	`;
+
+	connectedCallback(): void {
+		super.connectedCallback();
+
+		rainbowProvider.subscribe(color => {
+			if (configService.value.glowColor !== 'rainbow') return;
+			faviconSetter.setColor(color);
+		}, true);
+		configService.observeKey(
+			'glowColor',
+			color => {
+				console.log('Setting favicon color to:', color);
+				if (color !== 'rainbow') {
+					faviconSetter.setColor(color);
+				}
+			},
+			true,
+		);
+	}
 
 	render() {
 		return html`

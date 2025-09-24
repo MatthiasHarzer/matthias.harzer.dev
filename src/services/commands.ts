@@ -216,7 +216,7 @@ const commands: Command[] = [
 			}
 
 			return [
-				text("Hi, I'm "),
+				text(`Hi, I'm `),
 				highlight('Matthias'),
 				text(`, a ${age} y/o software engineering student from `),
 				link('Karlsruhe', 'https://www.google.com/maps/place/Karlsruhe/'),
@@ -396,11 +396,11 @@ const commands: Command[] = [
 						}
 						configService.setKeyValue(key, value);
 						return [
-							text(`Set config key "`),
+							text(`Set config key `),
 							highlight(key, 'config-key'),
-							text(`" to "`),
+							text(` to `),
 							highlight(String(value), 'config-value'),
-							text(`".`),
+							text(`.`),
 						];
 					}
 					case 'get': {
@@ -409,11 +409,11 @@ const commands: Command[] = [
 						}
 						const value = configService.getKeyValue(key);
 						return [
-							text(`Config key "`),
+							text(`Config key `),
 							highlight(key, 'config-key'),
-							text(`" is set to "`),
+							text(` is set to `),
 							highlight(String(value), 'config-value'),
-							text(`".`),
+							text(`.`),
 						];
 					}
 					default:

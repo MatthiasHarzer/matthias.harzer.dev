@@ -80,13 +80,16 @@ class ConfigObservable extends Observable<Config> {
 
 	observeKey<K extends keyof Config>(key: K, fn: Subscriber<Config[K]>, runImmediately = true) {
 		let lastValue: Config[K] = this.observableValue[key];
+		if (runImmediately) {
+			fn(lastValue);
+		}
 		return this.subscribe(() => {
 			const newValue = this.observableValue[key];
 			if (newValue !== lastValue) {
 				lastValue = newValue;
 				fn(newValue);
 			}
-		}, runImmediately);
+		}, false);
 	}
 }
 
