@@ -1,5 +1,5 @@
-import type { BaseObject } from './reactive-object.ts';
 import { Observable, type Subscriber } from './reactive.ts';
+import type { BaseObject } from './reactive-object.ts';
 
 interface Config {
 	typewriterCharsPerSecond: number;
