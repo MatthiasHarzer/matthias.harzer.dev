@@ -12,7 +12,7 @@
 	},
 	"scripts": {
 		"analyze": "npx biome ci ./src",
-		"fix": "npx biome check --write ./src index.html index.css",
+		"fix": "npx biome check --write ./src public/index.html public/index.css",
 		"build": "npx esbuild --bundle --outdir=public/dist --minify --keep-names src/index.ts",
 		"typecheck": "npx tsc",
 		"test": "echo not implemented yet",
