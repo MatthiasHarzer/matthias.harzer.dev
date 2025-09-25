@@ -162,10 +162,10 @@ const LocalStateMixin = <Base extends Constructor<Component>, LocalState extends
 		private static sharedStates = new Map<string, ReactiveObject<BaseObject>>();
 		private static getSharedState = <T extends BaseState>(
 			name: string,
-			intialState: BaseObject,
+			initialState: BaseObject,
 		): ReactiveObject<T> => {
 			if (!LocalStateComponent.sharedStates.has(name)) {
-				LocalStateComponent.sharedStates.set(name, new ReactiveObject(intialState));
+				LocalStateComponent.sharedStates.set(name, new ReactiveObject(initialState));
 			}
 			return LocalStateComponent.sharedStates.get(name) as ReactiveObject<T>;
 		};
