@@ -281,7 +281,7 @@ export class Terminal extends Component {
 		return html`
 			<div class="terminal ${this.hidden ? 'hidden' : ''}">
 				<div class="header">
-					<img class="icon" src="/assets/mh_sh_icon.svg" alt=">_MH"/>
+					<img class="icon" src="./assets/mh_sh_icon.svg" alt=">_MH"/>
 					<div class="title">
 						<span>${window.location.hostname} - Terminal</span>
 					</div>
