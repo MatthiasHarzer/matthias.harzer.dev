@@ -30,7 +30,7 @@ jobs:
           cache: 'npm'
 
       - name: Run QA
-        run: make ci
+        run: make qa
 
       - name: Build project
         run: make build
