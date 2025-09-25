@@ -404,7 +404,7 @@ export class TerminalResponseItem extends Component {
 			case 'emoji': {
 				switch (part.emoji) {
 					case '🎉':
-						return [html`<img src="/assets/tada.webp" alt="🎉" class="pixel-emoji" />`, 1];
+						return [html`<img src="./assets/tada.webp" alt="🎉" class="pixel-emoji" />`, 1];
 					default:
 						return [html`<span>${part.emoji}</span>`, 1];
 				}
