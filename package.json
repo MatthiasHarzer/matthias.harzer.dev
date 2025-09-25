@@ -16,6 +16,6 @@
 		"build": "npx esbuild --bundle --outdir=public/dist --minify --keep-names src/index.ts",
 		"typecheck": "npx tsc",
 		"test": "echo not implemented yet",
-		"watch": "npx esbuild src/index.ts --bundle --outdir=dist --watch --sourcemap --keep-names"
+		"watch": "npx esbuild src/index.ts --bundle --outdir=public/dist --watch --sourcemap --keep-names"
 	}
 }

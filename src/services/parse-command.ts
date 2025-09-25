@@ -5,11 +5,19 @@ const prevChar = (str: string, index: number): string | null => {
 	return str[index - 1];
 };
 
+const nextChar = (str: string, index: number): string | null => {
+	if (index < 0 || index >= str.length - 1) {
+		return null;
+	}
+	return str[index + 1];
+}
+
 const parseCommand = (input: string): { command: string; args: string[] } => {
 	const parts: string[] = [];
 
 	let currentPart = '';
 	let quotesType: "'" | '"' | null = null;
+	console.log({ input });
 
 	for (let i = 0; i < input.length; i++) {
 		const char = input[i];
@@ -24,12 +32,18 @@ const parseCommand = (input: string): { command: string; args: string[] } => {
 					currentPart = '';
 				}
 				break;
-			case '"':
-			case "'":
-				if (prevChar(input, i) === '\\') {
-					currentPart += char;
+			case '\\':
+				const next = nextChar(input, i);
+				if (['"', "'", '\\'].includes(next || '')) {
+					// skip the backslash, add the next char
+					i++;
+					currentPart += next;
 					break;
 				}
+				currentPart += char;
+				break;
+			case '"':
+			case "'":
 				if (quotesType === null) {
 					quotesType = char;
 					break;
