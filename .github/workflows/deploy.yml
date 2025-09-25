@@ -30,13 +30,13 @@ jobs:
           cache: 'npm'
 
       - name: Run QA
-        run: make ci
+        run: make qa
 
       - name: Build project
         run: make build
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public/
 
