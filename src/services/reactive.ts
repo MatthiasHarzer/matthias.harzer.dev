@@ -88,7 +88,7 @@ class Observable<T> implements ReadWriteObservable<T>, ReactiveController {
 	}
 
 	disconnect() {
-		for (const subscriber of this.subscribers) {
+		for (const subscriber of this.subscribers.slice()) {
 			this.unsubscribe(subscriber);
 		}
 	}
