@@ -13,9 +13,9 @@
 	"scripts": {
 		"analyze": "npx biome ci ./src",
 		"fix": "npx biome check --write ./src public/index.html public/index.css",
-		"build": "npx esbuild --bundle --outdir=public/dist --minify --keep-names src/index.ts",
+		"build": "npx esbuild --bundle --outdir=public/dist --keep-names src/index.ts",
 		"typecheck": "npx tsc",
 		"test": "echo not implemented yet",
-		"watch": "npx esbuild src/index.ts --bundle --outdir=public/dist --watch --sourcemap --keep-names"
+		"watch": "npx esbuild --bundle --outdir=public/dist --keep-names --sourcemap --watch src/index.ts"
 	}
 }
