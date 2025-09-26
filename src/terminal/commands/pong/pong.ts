@@ -433,7 +433,6 @@ class PongComponent extends Component {
 		}
 		return html`
 			<div class="controls">
-
 				<div class="group">
 					Controls:
 					<mh-pixel-border>
