@@ -48,91 +48,12 @@ class PongComponent extends Component {
 			margin-bottom: 5px;
 		}
 
-		.pixel-corners{
-			  clip-path: polygon(0px calc(100% - 4px),
-    2px calc(100% - 4px),
-    2px calc(100% - 2px),
-    4px calc(100% - 2px),
-    4px 100%,
-    calc(100% - 4px) 100%,
-    calc(100% - 4px) calc(100% - 2px),
-    calc(100% - 2px) calc(100% - 2px),
-    calc(100% - 2px) calc(100% - 4px),
-    100% calc(100% - 4px),
-    100% 4px,
-    calc(100% - 2px) 4px,
-    calc(100% - 2px) 2px,
-    calc(100% - 4px) 2px,
-    calc(100% - 4px) 0px,
-    4px 0px,
-    4px 2px,
-    2px 2px,
-    2px 4px,
-    0px 4px);
-  position: relative;
-		}
-		.pixel-corners {
-			border: 2px solid transparent;
-		}
-
-		.pixel-corners::after{
-			content: "";
-			position: absolute;
-			clip-path: polygon(0px calc(100% - 4px),
-				2px calc(100% - 4px),
-				2px calc(100% - 2px),
-				4px calc(100% - 2px),
-				4px 100%,
-				calc(100% - 4px) 100%,
-				calc(100% - 4px) calc(100% - 2px),
-				calc(100% - 2px) calc(100% - 2px),
-				calc(100% - 2px) calc(100% - 4px),
-				100% calc(100% - 4px),
-				100% 4px,
-				calc(100% - 2px) 4px,
-				calc(100% - 2px) 2px,
-				calc(100% - 4px) 2px,
-				calc(100% - 4px) 0px,
-				4px 0px,
-				4px 2px,
-				2px 2px,
-				2px 4px,
-				0px 4px,
-				0px 50%,
-				2px 50%,
-				2px 4px,
-				4px 4px,
-				4px 2px,
-				calc(100% - 4px) 2px,
-				calc(100% - 4px) 4px,
-				calc(100% - 2px) 4px,
-				calc(100% - 2px) calc(100% - 4px),
-				calc(100% - 4px) calc(100% - 4px),
-				calc(100% - 4px) calc(100% - 2px),
-				4px calc(100% - 2px),
-				4px calc(100% - 4px),
-				2px calc(100% - 4px),
-				2px 50%,
-				0px 50%);
-			top: 0;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			background: currentColor;
-			display: block;
-			pointer-events: none;
-		}
-		.pixel-corners::after {
-			margin: -2px;
-		}
-
 		.key {
 			min-width: 25px;
 			height: 25px;
 			display: inline-flex;
 			justify-content: center;
 			align-items: center;
-			margin: 0 2px;
 			padding: 0 4px;
 		}
 	`;
@@ -168,21 +89,18 @@ class PongComponent extends Component {
 		localStorage.setItem(this.#localStorageKey, value.toString());
 	}
 
-	@state() state: 'initial' | 'running' | 'stopped' = 'initial';
-	@state() isGameOver: boolean = true;
+	@state() state: 'initial' | 'running' | 'game-over' | 'stopped' = 'initial';
 
 	#subscriptions: Unsubscribe[] = [];
 
 	restart() {
-		if (!this.isGameOver) return;
+		if (this.state !== 'game-over') return;
 		this.score = 0;
 		this.state = 'running';
-		this.isGameOver = false;
 		this.resetBall();
 	}
 
 	exit() {
-		this.isGameOver = true;
 		this.state = 'stopped';
 		this.terminal?.enableInput().then(() => {
 			this.terminal?.focusInput();
@@ -234,7 +152,7 @@ class PongComponent extends Component {
 	}
 
 	gameOver() {
-		this.isGameOver = true;
+		this.state = 'game-over';
 		if (this.score > this.highscore) {
 			this.highscore = this.score;
 		}
@@ -316,7 +234,6 @@ class PongComponent extends Component {
 	}
 
 	loop(delta: number) {
-		if (this.isGameOver) return;
 		if (this.state !== 'running') return;
 
 		this.ballX += this.ballVX * delta;
@@ -367,43 +284,38 @@ class PongComponent extends Component {
 	}
 
 	renderOverlay() {
-		if (this.state === 'initial') {
-			return html`
-				<div>
-					<span>Press Space to start the game</span>
-					<br />
-					Highscore: ${this.highscore}
-				</div>
-			`;
+		switch (this.state) {
+			case 'initial':
+				return html`
+					<div>
+						<span>Press Space to start the game</span>
+						<br />
+						Highscore: ${this.highscore}
+					</div>
+				`;
+			case 'running':
+				return html`
+					<div class='score'>
+						${this.score}
+					</div>
+				`;
+			case 'game-over':
+			case 'stopped':
+				return html`
+					<div>
+						<span class="game-over">Game Over!</span>
+						<br />
+						Score: ${this.score} | Highscore: ${this.highscore}
+						<br />
+						${this.state === 'game-over' ? 'Press ESC to exit or Space to restart' : ''}
+					</div>
+				`;
 		}
-		if (!this.isGameOver)
-			return html`
-			<div class='score'>
-				${this.score}
-			</div>`;
-		return html`
-			<div>
-				<span class="game-over">Game Over!</span>
-				<br />
-				Score: ${this.score} | Highscore: ${this.highscore}
-				<br />
-				${this.state === 'running' ? 'Press ESC to exit or Space to restart' : ''}
-			</div>
-		`;
 	}
 
-	render() {
+	renderGame() {
 		return html`
-			<style>
-				:host {
-					--height: ${this.#height}px;
-				}
-			</style>
-			<div class="controls">
-				Controls: <span class="key pixel-corners">W</span><span class="key pixel-corners">S</span> / <span class="key pixel-corners">↑</span><span class="key pixel-corners">↓</span> to move, <span class="key pixel-corners">ESC</span> to exit
-			</div>
-			<div class="pong">
-				<svg width="100%" height="100%">
+			<svg width="100%" height="100%">
 				${svg`
 					<rect
 						x="0"
@@ -420,14 +332,45 @@ class PongComponent extends Component {
 						fill="white"
 					></rect>
 					${
-						!this.isGameOver
+						this.state === 'running'
 							? svg`
 								<circle cx="${this.ballX}" cy="${this.ballY}" r="${this.#ballSize / 2}" fill="white"></circle>
 								`
 							: ''
 					}
-					`}
-				</svg>
+				`}
+			</svg>
+		`;
+	}
+
+	render() {
+		return html`
+			<style>
+				:host {
+					--height: ${this.#height}px;
+				}
+			</style>
+			<div class="controls">
+				Controls:
+				<mh-pixel-border>
+					<span class="key">W</span>
+				</mh-pixel-border>
+				<mh-pixel-border>
+					<span class="key">S</span>
+				</mh-pixel-border> /
+				<mh-pixel-border>
+					<span class="key">↑</span>
+				</mh-pixel-border>
+				<mh-pixel-border>
+					<span class="key">↓</span>
+				</mh-pixel-border>
+				to move,
+				<mh-pixel-border>
+					<span class="key">ESC</span>
+				</mh-pixel-border> to exit
+			</div>
+			<div class="pong">
+				${this.renderGame()}
 				<div class="overlay">
 					${this.renderOverlay()}
 				</div>
@@ -444,6 +387,7 @@ class PongCommand implements Command {
 	prepare(terminal: Terminal): TerminalFunction {
 		return () => {
 			terminal.disableInput();
+			// return [component(html`<mh-pixel-border>Welp</mh-pixel-border>`)];
 			return [component(html`<mh-terminal-pong .terminal=${terminal}></mh-terminal-pong>`)];
 		};
 	}

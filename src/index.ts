@@ -4,3 +4,4 @@ import './Terminal.ts';
 import './TerminalInput.ts';
 import './TerminalResponseItem.ts';
 import './TerminalSection.ts';
+import './components/PixelBorder.ts';
