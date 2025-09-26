@@ -38,6 +38,103 @@ class PongComponent extends Component {
 			font-size: 32px;
 			font-weight: bold;
 		}
+
+		.score {
+			height: 100%;
+			font-size: 48px;
+		}
+
+		.controls {
+			margin-bottom: 5px;
+		}
+
+		.pixel-corners{
+			  clip-path: polygon(0px calc(100% - 4px),
+    2px calc(100% - 4px),
+    2px calc(100% - 2px),
+    4px calc(100% - 2px),
+    4px 100%,
+    calc(100% - 4px) 100%,
+    calc(100% - 4px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 2px),
+    calc(100% - 2px) calc(100% - 4px),
+    100% calc(100% - 4px),
+    100% 4px,
+    calc(100% - 2px) 4px,
+    calc(100% - 2px) 2px,
+    calc(100% - 4px) 2px,
+    calc(100% - 4px) 0px,
+    4px 0px,
+    4px 2px,
+    2px 2px,
+    2px 4px,
+    0px 4px);
+  position: relative;
+		}
+		.pixel-corners {
+			border: 2px solid transparent;
+		}
+
+		.pixel-corners::after{
+			content: "";
+			position: absolute;
+			clip-path: polygon(0px calc(100% - 4px),
+				2px calc(100% - 4px),
+				2px calc(100% - 2px),
+				4px calc(100% - 2px),
+				4px 100%,
+				calc(100% - 4px) 100%,
+				calc(100% - 4px) calc(100% - 2px),
+				calc(100% - 2px) calc(100% - 2px),
+				calc(100% - 2px) calc(100% - 4px),
+				100% calc(100% - 4px),
+				100% 4px,
+				calc(100% - 2px) 4px,
+				calc(100% - 2px) 2px,
+				calc(100% - 4px) 2px,
+				calc(100% - 4px) 0px,
+				4px 0px,
+				4px 2px,
+				2px 2px,
+				2px 4px,
+				0px 4px,
+				0px 50%,
+				2px 50%,
+				2px 4px,
+				4px 4px,
+				4px 2px,
+				calc(100% - 4px) 2px,
+				calc(100% - 4px) 4px,
+				calc(100% - 2px) 4px,
+				calc(100% - 2px) calc(100% - 4px),
+				calc(100% - 4px) calc(100% - 4px),
+				calc(100% - 4px) calc(100% - 2px),
+				4px calc(100% - 2px),
+				4px calc(100% - 4px),
+				2px calc(100% - 4px),
+				2px 50%,
+				0px 50%);
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: currentColor;
+			display: block;
+			pointer-events: none;
+		}
+		.pixel-corners::after {
+			margin: -2px;
+		}
+
+		.key {
+			min-width: 25px;
+			height: 25px;
+			display: inline-flex;
+			justify-content: center;
+			align-items: center;
+			margin: 0 2px;
+			padding: 0 4px;
+		}
 	`;
 
 	#paddleHeight: number = 50;
@@ -71,21 +168,22 @@ class PongComponent extends Component {
 		localStorage.setItem(this.#localStorageKey, value.toString());
 	}
 
-	@state() running: boolean = true;
+	@state() state: 'initial' | 'running' | 'stopped' = 'initial';
 	@state() isGameOver: boolean = true;
 
 	#subscriptions: Unsubscribe[] = [];
 
 	restart() {
+		if (!this.isGameOver) return;
 		this.score = 0;
-		this.running = true;
+		this.state = 'running';
 		this.isGameOver = false;
 		this.resetBall();
 	}
 
 	exit() {
 		this.isGameOver = true;
-		this.running = false;
+		this.state = 'stopped';
 		this.terminal?.enableInput().then(() => {
 			this.terminal?.focusInput();
 		});
@@ -219,7 +317,7 @@ class PongComponent extends Component {
 
 	loop(delta: number) {
 		if (this.isGameOver) return;
-		if (!this.running) return;
+		if (this.state !== 'running') return;
 
 		this.ballX += this.ballVX * delta;
 		this.ballY += this.ballVY * delta;
@@ -269,16 +367,27 @@ class PongComponent extends Component {
 	}
 
 	renderOverlay() {
-		if (!this.isGameOver) return html``;
-		return html`
-			<div class="overlay">
+		if (this.state === 'initial') {
+			return html`
 				<div>
-					<span class="game-over">Game Over!</span>
+					<span>Press Space to start the game</span>
 					<br />
-					Score: ${this.score} | Highscore: ${this.highscore}
-					<br />
-					${this.running ? 'Press ESC to exit or Space to restart' : ''}
+					Highscore: ${this.highscore}
 				</div>
+			`;
+		}
+		if (!this.isGameOver)
+			return html`
+			<div class='score'>
+				${this.score}
+			</div>`;
+		return html`
+			<div>
+				<span class="game-over">Game Over!</span>
+				<br />
+				Score: ${this.score} | Highscore: ${this.highscore}
+				<br />
+				${this.state === 'running' ? 'Press ESC to exit or Space to restart' : ''}
 			</div>
 		`;
 	}
@@ -290,6 +399,9 @@ class PongComponent extends Component {
 					--height: ${this.#height}px;
 				}
 			</style>
+			<div class="controls">
+				Controls: <span class="key pixel-corners">W</span><span class="key pixel-corners">S</span> / <span class="key pixel-corners">↑</span><span class="key pixel-corners">↓</span> to move, <span class="key pixel-corners">ESC</span> to exit
+			</div>
 			<div class="pong">
 				<svg width="100%" height="100%">
 				${svg`
