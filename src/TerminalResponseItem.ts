@@ -2,7 +2,7 @@ import { css, html, type TemplateResult } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from './litutil/Component.ts';
-import type { CommandResult, ResultItem } from './terminal/command.ts';
+import type { TerminalItem, TerminalResponse } from './terminal/terminal.ts';
 
 const cutText = (text: string, maxLength: number) => {
 	if (maxLength === -1) {
@@ -240,12 +240,12 @@ export class TerminalResponseItem extends Component {
 		}
 	`;
 
-	@property({ attribute: false }) result: CommandResult = [];
+	@property({ attribute: false }) result: TerminalResponse = [];
 	@property({ type: Number, attribute: 'typewriter-chars-per-second' }) typewriterCharsPerSecond =
 		-1;
 
-	@state() _displayedContent: TemplateResult<1> | TemplateResult<1>[] = html``;
-	#placeholderRender: TemplateResult<1> | TemplateResult<1>[] = html``;
+	@state() _displayedContent: TemplateResult | TemplateResult[] = html``;
+	#placeholderRender: TemplateResult | TemplateResult[] = html``;
 
 	connectedCallback(): void {
 		super.connectedCallback();
@@ -260,7 +260,7 @@ export class TerminalResponseItem extends Component {
 	}
 
 	renderFinishedParts(lastPartIndex: number) {
-		const renderedParts: TemplateResult<1>[] = [];
+		const renderedParts: TemplateResult[] = [];
 		for (let i = 0; i < lastPartIndex; i++) {
 			const part = this.result[i];
 			const [renderedPart] = this.#renderResponsePart(part, -1);
@@ -274,7 +274,7 @@ export class TerminalResponseItem extends Component {
 		lastPartIndex: number,
 		lastPartCharIndex: number,
 		charsLeftToAdd: number,
-	): [TemplateResult<1> | null, number] {
+	): [TemplateResult | null, number] {
 		const part = this.result[lastPartIndex];
 		if (!part) {
 			return [null, 0];
@@ -308,7 +308,7 @@ export class TerminalResponseItem extends Component {
 				return;
 			}
 
-			const renderedParts: TemplateResult<1>[] = [];
+			const renderedParts: TemplateResult[] = [];
 
 			numberOfCharsToRender += charsToAdd;
 			let remainingCharsToRender = numberOfCharsToRender;
@@ -337,10 +337,10 @@ export class TerminalResponseItem extends Component {
 	}
 
 	#renderRepsonseParts(
-		parts: ResultItem[],
+		parts: TerminalItem[],
 		maxCharsToRender: number,
-	): [TemplateResult<1>[], number] {
-		const renderedParts: TemplateResult<1>[] = [];
+	): [TemplateResult[], number] {
+		const renderedParts: TemplateResult[] = [];
 		let charsRendered = 0;
 		let totalLength = 0;
 		for (const part of parts) {
@@ -358,7 +358,7 @@ export class TerminalResponseItem extends Component {
 		return [renderedParts, totalLength];
 	}
 
-	#renderResponsePart(part: ResultItem, maxCharsToRender: number): [TemplateResult<1>, number] {
+	#renderResponsePart(part: TerminalItem, maxCharsToRender: number): [TemplateResult, number] {
 		switch (part.type) {
 			case 'text':
 				return [html`${cutText(part.text, maxCharsToRender)}`, part.text.length];
@@ -409,10 +409,13 @@ export class TerminalResponseItem extends Component {
 						return [html`<span>${part.emoji}</span>`, 1];
 				}
 			}
+			case 'component': {
+				return [part.component, 0];
+			}
 		}
 	}
 
-	#renderResponse(response: CommandResult) {
+	#renderResponse(response: TerminalResponse) {
 		return response.map(part => this.#renderResponsePart(part, -1)[0]);
 	}
 

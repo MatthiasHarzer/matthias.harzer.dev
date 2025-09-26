@@ -1,18 +1,18 @@
 import type { Terminal } from '../../Terminal.ts';
+import { findCommand, helpCommands } from '../commands.ts';
 import {
 	type Command,
-	type CommandResult,
 	highlight,
 	indentation,
 	linebreak,
 	mentionCommandName,
 	mentionCommandUsage,
-	type ResultItem,
+	type TerminalItem,
+	type TerminalResponse,
 	text,
-} from '../command.ts';
-import { findCommand, helpCommands } from '../commands.ts';
+} from '../terminal.ts';
 
-const basicCommandUsageDetails = (terminal: Terminal, command: Command): ResultItem[] => {
+const basicCommandUsageDetails = (terminal: Terminal, command: Command): TerminalItem[] => {
 	return [
 		mentionCommandName(terminal, command.name),
 		text(' - '),
@@ -25,12 +25,12 @@ const basicCommandUsageDetails = (terminal: Terminal, command: Command): ResultI
 
 class HelpCommand implements Command {
 	name = 'help';
-	description = 'Lists all available commands.';
+	description = 'Lists all available commands';
 	isHidden = false;
 	noHelp = false;
 
-	#overview(terminal: Terminal): CommandResult {
-		const commandItems: ResultItem[] = [text('Available commands:'), linebreak(1)];
+	#overview(terminal: Terminal): TerminalResponse {
+		const commandItems: TerminalItem[] = [text('Available commands:'), linebreak(1)];
 		helpCommands.forEach((cmd, index) => {
 			if (index > 0) {
 				commandItems.push(linebreak());
@@ -52,7 +52,7 @@ class HelpCommand implements Command {
 		return commandItems;
 	}
 
-	async #details(terminal: Terminal, args: string[]): Promise<CommandResult | null> {
+	async #details(terminal: Terminal, args: string[]): Promise<TerminalResponse | null> {
 		if (args.length === 0) {
 			return [];
 		}

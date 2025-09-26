@@ -1,6 +1,6 @@
 import type { Terminal } from '../../Terminal.ts';
-import { button, type Command, link, text } from '../command.ts';
 import { visibleCommands } from '../commands.ts';
+import { button, type Command, link, text } from '../terminal.ts';
 
 class WhoamiCommand implements Command {
 	name = 'whoami';

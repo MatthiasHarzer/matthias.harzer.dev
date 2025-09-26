@@ -1,8 +1,8 @@
-import { type Command, highlight, link, plainCommand, text } from '../command.ts';
+import { type Command, highlight, link, plainCommand, text } from '../terminal.ts';
 
 const who: Command = {
 	name: 'who',
-	description: 'Displays information about me.',
+	description: 'Displays information about me',
 	prepare: plainCommand(() => {
 		const birthday = new Date(2002, 10, 3);
 		const now = new Date();
