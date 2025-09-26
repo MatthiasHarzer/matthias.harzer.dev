@@ -1,4 +1,4 @@
-import { css, html } from 'lit';
+import { css, html, type PropertyValues } from 'lit';
 import { state } from 'lit/decorators/state.js';
 import { map } from 'lit/directives/map.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
@@ -6,7 +6,7 @@ import { Component } from './litutil/Component.ts';
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
 import { commandNotFound, findCommand, helpCommands } from './terminal/commands.ts';
-import type { TerminalResponse } from './terminal/terminal.ts';
+import type { Command, TerminalResponse } from './terminal/terminal.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
@@ -89,6 +89,10 @@ export class Terminal extends Component {
 				overflow: auto;
 				padding-right: 5px;
 
+				&.disable-scroll {
+					overflow: hidden;
+				}
+
 				&::-webkit-scrollbar {
           display: none;
         }
@@ -105,9 +109,13 @@ export class Terminal extends Component {
 	#historyRef: Ref<HTMLDivElement> = createRef();
 	#suggestionTimeout: number | null = null;
 	#resolvePromptResponse: ((value: string) => void) | null = null;
+	#resizeObserver: ResizeObserver | null = null;
 
+	@state() inputDisabled: boolean = false;
 	@state() hidden: boolean = false;
 	@state() responses: Response[] = [];
+	@state() terminalHeight: number = 0;
+	@state() terminalWidth: number = 0;
 
 	get historyElement() {
 		if (!this.#historyRef.value) {
@@ -155,6 +163,32 @@ export class Terminal extends Component {
 		this.responses = [];
 	}
 
+	disableInput() {
+		this.inputDisabled = true;
+	}
+
+	enableInput() {
+		this.inputDisabled = false;
+
+		return this.updateComplete;
+	}
+
+	async executeCommand(command: Command, ...args: string[]) {
+		const execute = command.prepare(this);
+
+		try {
+			const result = await execute(...args);
+			if (result === null) return;
+			this.addResult(result);
+		} catch (e) {
+			if (e instanceof Error) {
+				this.addResult([{ type: 'text', text: `Error: ${e.message}` }]);
+				return;
+			}
+			this.addResult([{ type: 'text', text: 'Error: An unknown error occurred.' }]);
+		}
+	}
+
 	async onCommandSubmit(event: CustomEvent<{ value: string }>) {
 		const commandAndArgs = event.detail.value.trim();
 
@@ -178,19 +212,7 @@ export class Terminal extends Component {
 			return;
 		}
 
-		const execute = command.prepare(this);
-
-		try {
-			const result = await execute(...args);
-			if (result === null) return;
-			this.addResult(result);
-		} catch (e) {
-			if (e instanceof Error) {
-				this.addResult([{ type: 'text', text: `Error: ${e.message}` }]);
-				return;
-			}
-			this.addResult([{ type: 'text', text: 'Error: An unknown error occurred.' }]);
-		}
+		await this.executeCommand(command, ...args);
 	}
 
 	hide() {
@@ -223,6 +245,7 @@ export class Terminal extends Component {
 			this.inputElement.suggestPlaceholder('help');
 		}, 4000);
 		this.#suggestionTimeout = window.setInterval(() => {
+			if (this.inputDisabled) return;
 			this.#makeRandomSuggestion();
 		}, 15_000);
 	}
@@ -231,6 +254,22 @@ export class Terminal extends Component {
 		super.disconnectedCallback();
 		this.removeEventListener('click', this.#focusInput);
 		this.#suggestionTimeout && clearInterval(this.#suggestionTimeout);
+		this.#resizeObserver?.disconnect();
+	}
+
+	firstUpdated(_changedProperties: PropertyValues): void {
+		super.firstUpdated(_changedProperties);
+
+		this.terminalHeight = this.shadowRoot?.host.clientHeight || 0;
+		this.terminalWidth = this.shadowRoot?.host.clientWidth || 0;
+
+		this.#resizeObserver = new ResizeObserver(entries => {
+			this.terminalHeight = entries[0].contentRect.height;
+			this.terminalWidth = entries[0].contentRect.width;
+		});
+		this.#resizeObserver.observe(this.shadowRoot?.host as Element);
+
+		this.executeCommand(findCommand('pong')!);
 	}
 
 	renderResponse(response: Response) {
@@ -247,6 +286,12 @@ export class Terminal extends Component {
 
 	render() {
 		return html`
+			<style>
+				:host {
+					--terminal-height: ${this.terminalHeight}px;
+					--terminal-width: ${this.terminalWidth}px;
+				}
+			</style>
 			<div class="terminal ${this.hidden ? 'hidden' : ''}">
 				<div class="header">
 					<img class="icon" src="./assets/mh_sh_icon.svg" alt=">_MH"/>
@@ -256,13 +301,14 @@ export class Terminal extends Component {
 				</div>
 				<div class="body">
 					<div class="terminal-content">
-						<div class="history" ${ref(this.#historyRef)}>
+						<div class="history ${this.inputDisabled ? 'disable-scroll' : ''}" ${ref(this.#historyRef)}>
 							${map(this.responses, response => this.renderResponse(response))}
 						</div>
 						<div class="command-input">
 							<mh-terminal-input
-							${ref(this.#inputRef)}
-							@submit=${this.onCommandSubmit}
+								${ref(this.#inputRef)}
+								?disabled=${this.inputDisabled}
+								@submit=${this.onCommandSubmit}
 							>
 							</mh-terminal-input>
 						</div>

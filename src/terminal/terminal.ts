@@ -1,3 +1,4 @@
+import type { TemplateResult } from 'lit';
 import { getFunctionParameters, paramsToString } from '../services/function-params.ts';
 import type { Terminal } from '../Terminal.ts';
 
@@ -11,7 +12,8 @@ interface TerminalPart {
 		| 'paragraph'
 		| 'indentation'
 		| 'hover-highlight-block'
-		| 'emoji';
+		| 'emoji'
+		| 'component';
 }
 
 interface TerminalText extends TerminalPart {
@@ -65,6 +67,11 @@ interface TerminalEmoji extends TerminalPart {
 	emoji: string; // the emoji character
 }
 
+interface TerminalComponent extends TerminalPart {
+	type: 'component';
+	component: TemplateResult; // a Lit template
+}
+
 type TerminalItem =
 	| TerminalText
 	| TerminalHighlight
@@ -74,7 +81,8 @@ type TerminalItem =
 	| TerminalParagraph
 	| TerminalIndentation
 	| TerminalHoverHighlightBlock
-	| TerminalEmoji;
+	| TerminalEmoji
+	| TerminalComponent;
 
 type TerminalResponse = TerminalItem[];
 
@@ -152,10 +160,16 @@ const mentionCommandUsage = (
 	);
 };
 
+const component = (component: TemplateResult): TerminalComponent => ({
+	type: 'component',
+	component,
+});
+
 const plainCommand = (fn: (...args: string[]) => TerminalResponse) => () => fn;
 
 export {
 	button,
+	component,
 	emoji,
 	highlight,
 	hoverHighlightBlock,
@@ -171,6 +185,7 @@ export {
 export type {
 	Command,
 	TerminalButton,
+	TerminalComponent,
 	TerminalEmoji,
 	TerminalFunction,
 	TerminalHighlight,

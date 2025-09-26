@@ -1,4 +1,5 @@
 import { css, html } from 'lit';
+import { property } from 'lit/decorators/property.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
 
@@ -18,6 +19,8 @@ export class TerminalInput extends Component {
 	#inputRef: Ref<HTMLInputElement> = createRef();
 	#history: string[] = [];
 	#historyIndex = -1;
+
+	@property({ type: Boolean }) disabled = false;
 
 	get #input() {
 		if (!this.#inputRef.value) {
@@ -39,6 +42,7 @@ export class TerminalInput extends Component {
 	}
 
 	#onKeydown(event: KeyboardEvent) {
+		if (this.disabled) return;
 		switch (event.key) {
 			case 'Enter': {
 				const value = this.#input.value.trim();
@@ -129,6 +133,7 @@ export class TerminalInput extends Component {
 					autocorrect="off"
 					autocapitalize="off"
 					spellcheck="false"
+					?disabled=${this.disabled}
 			/>
 			</mh-terminal-section>
 		`;
