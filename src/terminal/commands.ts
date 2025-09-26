@@ -1,4 +1,3 @@
-import { type Command, highlight, text } from './command.ts';
 import career from './commands/career.ts';
 import clear from './commands/clear.ts';
 import config from './commands/config.ts';
@@ -7,9 +6,11 @@ import exit from './commands/exit.ts';
 import github from './commands/github.ts';
 import help from './commands/help.ts';
 import mh from './commands/mh.ts';
+import pong from './commands/pong/pong.ts';
 import tech from './commands/tech.ts';
 import who from './commands/who.ts';
 import whoami from './commands/whoami.ts';
+import { type Command, highlight, text } from './terminal.ts';
 
 // biome-ignore format: Force vertical list for easier reading / reordering
 const commands = [
@@ -24,6 +25,7 @@ const commands = [
 	whoami,
 	exit,
 	mh,
+	pong,
 ];
 
 const visibleCommands = commands.filter(cmd => !cmd.isHidden);

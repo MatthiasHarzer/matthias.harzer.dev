@@ -1,8 +1,8 @@
-import { type Command, link, plainCommand, text } from '../command.ts';
+import { type Command, link, plainCommand, text } from '../terminal.ts';
 
 const contact: Command = {
 	name: 'contact',
-	description: 'How to reach me.',
+	description: 'How to reach me',
 	prepare: plainCommand(() => {
 		return [
 			text('You can contact me via mail at '),

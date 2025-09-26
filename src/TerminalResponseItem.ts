@@ -2,7 +2,7 @@ import { css, html, type TemplateResult } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from './litutil/Component.ts';
-import type { CommandResult, ResultItem } from './terminal/command.ts';
+import type { TerminalItem, TerminalResponse } from './terminal/terminal.ts';
 
 const cutText = (text: string, maxLength: number) => {
 	if (maxLength === -1) {
@@ -240,7 +240,7 @@ export class TerminalResponseItem extends Component {
 		}
 	`;
 
-	@property({ attribute: false }) result: CommandResult = [];
+	@property({ attribute: false }) result: TerminalResponse = [];
 	@property({ type: Number, attribute: 'typewriter-chars-per-second' }) typewriterCharsPerSecond =
 		-1;
 
@@ -337,7 +337,7 @@ export class TerminalResponseItem extends Component {
 	}
 
 	#renderRepsonseParts(
-		parts: ResultItem[],
+		parts: TerminalItem[],
 		maxCharsToRender: number,
 	): [TemplateResult<1>[], number] {
 		const renderedParts: TemplateResult<1>[] = [];
@@ -358,7 +358,7 @@ export class TerminalResponseItem extends Component {
 		return [renderedParts, totalLength];
 	}
 
-	#renderResponsePart(part: ResultItem, maxCharsToRender: number): [TemplateResult<1>, number] {
+	#renderResponsePart(part: TerminalItem, maxCharsToRender: number): [TemplateResult<1>, number] {
 		switch (part.type) {
 			case 'text':
 				return [html`${cutText(part.text, maxCharsToRender)}`, part.text.length];
@@ -412,7 +412,7 @@ export class TerminalResponseItem extends Component {
 		}
 	}
 
-	#renderResponse(response: CommandResult) {
+	#renderResponse(response: TerminalResponse) {
 		return response.map(part => this.#renderResponsePart(part, -1)[0]);
 	}
 

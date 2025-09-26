@@ -8,11 +8,11 @@ import {
 	paragraph,
 	plainCommand,
 	text,
-} from '../command.ts';
+} from '../terminal.ts';
 
 const career: Command = {
 	name: 'career',
-	description: 'Displays my career so far.',
+	description: 'Displays my career so far',
 	prepare: plainCommand(() => {
 		return [
 			text("I'm studying at the "),

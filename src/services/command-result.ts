@@ -1,5 +1,5 @@
-import { getFunctionParameters, paramsToString } from '../services/function-params.ts';
 import type { Terminal } from '../Terminal.ts';
+import { getFunctionParameters, paramsToString } from './function-params.ts';
 
 interface ResultPart {
 	type:
@@ -154,8 +154,6 @@ const mentionCommandUsage = (
 	);
 };
 
-const plainCommand = (fn: (...args: string[]) => CommandResult) => () => fn;
-
 export {
 	button,
 	emoji,
@@ -167,7 +165,6 @@ export {
 	mentionCommandName,
 	mentionCommandUsage,
 	paragraph,
-	plainCommand,
 	text,
 };
 export type {

@@ -1,9 +1,9 @@
 import type { Terminal } from '../../Terminal.ts';
-import { type Command, linebreak, text } from '../command.ts';
+import { type Command, linebreak, text } from '../terminal.ts';
 
 class ExitCommand implements Command {
 	name = 'exit';
-	description = 'Exits the terminal.';
+	description = 'Exits the terminal';
 	isHidden = true;
 	noHelp = false;
 

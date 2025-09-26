@@ -9,11 +9,11 @@ import {
 	linebreak,
 	mentionCommandName,
 	text,
-} from '../command.ts';
+} from '../terminal.ts';
 
 const config: Command = {
 	name: 'config',
-	description: 'Configure the terminal.',
+	description: 'Configure the terminal',
 	isHidden: true,
 	noHelp: false,
 	prepare:

@@ -5,9 +5,9 @@ import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
-import type { TerminalInput } from './TerminalInput.ts';
-import type { CommandResult } from './terminal/command.ts';
 import { commandNotFound, findCommand, helpCommands } from './terminal/commands.ts';
+import type { TerminalResponse } from './terminal/terminal.ts';
+import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
 	type: 'text';
@@ -16,7 +16,7 @@ interface CommandResponse {
 
 interface CommandResultResponse {
 	type: 'result';
-	result: CommandResult;
+	result: TerminalResponse;
 }
 
 type Response = CommandResponse | CommandResultResponse;
@@ -137,7 +137,7 @@ export class Terminal extends Component {
 		this.addResponse({ type: 'text', text });
 	}
 
-	addResult(response: CommandResult) {
+	addResult(response: TerminalResponse) {
 		this.addResponse({ type: 'result', result: response });
 	}
 
@@ -197,7 +197,7 @@ export class Terminal extends Component {
 		this.hidden = true;
 	}
 
-	prompt(prompt: CommandResult): Promise<[string, boolean]> {
+	prompt(prompt: TerminalResponse): Promise<[string, boolean]> {
 		return new Promise(resolve => {
 			this.addResult(prompt);
 			this.#resolvePromptResponse = value => {

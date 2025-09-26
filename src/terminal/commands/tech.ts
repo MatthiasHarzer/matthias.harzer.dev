@@ -1,8 +1,8 @@
-import { type Command, link, plainCommand, text } from '../command.ts';
+import { type Command, link, plainCommand, text } from '../terminal.ts';
 
 const tech: Command = {
 	name: 'tech',
-	description: 'Lists technologies, I use for development.',
+	description: 'Lists technologies, I use for development',
 	prepare: plainCommand(() => {
 		return [
 			text('I have experience in building frontend applications with '),

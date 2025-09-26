@@ -1,8 +1,8 @@
-import { type Command, emoji, text } from '../command.ts';
+import { type Command, emoji, text } from '../terminal.ts';
 
 const mh: Command = {
 	name: 'mh',
-	description: 'Secret command.',
+	description: 'Secret command',
 	isHidden: true,
 	noHelp: true,
 	prepare: () => () => [

@@ -1,9 +1,9 @@
 import type { Terminal } from '../../Terminal.ts';
-import type { Command } from '../command.ts';
+import type { Command } from '../terminal.ts';
 
 const clear: Command = {
 	name: 'clear',
-	description: 'Clears the terminal.',
+	description: 'Clears the terminal',
 	prepare: (terminal: Terminal) => {
 		return () => {
 			terminal.clear();
