@@ -383,9 +383,13 @@ const commands: Command[] = [
 							const value = (configService.value as BaseObject)[key];
 							return [
 								index > 0 ? linebreak() : null,
-								button(key, () => {
-									terminal.pasteCommand(`config set ${key} `);
-								}),
+								button(
+									key,
+									() => {
+										terminal.pasteCommand(`config set ${key} `);
+									},
+									'config-key',
+								),
 								text(' = '),
 								highlight(String(value), 'config-value'),
 							].filter(item => item !== null);
@@ -493,7 +497,24 @@ const commands: Command[] = [
 			},
 	},
 ];
-commands.sort((a, b) => a.name.localeCompare(b.name));
+
+const baseOrder = ['who', 'tech', 'career', 'contact', 'github', 'help'];
+
+commands.sort((a, b) => {
+	const indexA = baseOrder.indexOf(a.name);
+	const indexB = baseOrder.indexOf(b.name);
+
+	if (indexA === -1 && indexB === -1) {
+		return a.name.localeCompare(b.name);
+	}
+	if (indexA === -1) {
+		return 1;
+	}
+	if (indexB === -1) {
+		return -1;
+	}
+	return indexA - indexB;
+});
 
 const visibleCommands = commands.filter(cmd => !cmd.isHidden);
 const helpCommands = commands.filter(cmd => !cmd.noHelp);

@@ -7,8 +7,6 @@ import type { CommandResult } from './services/command-result.ts';
 import { commandNotFound, findCommand, helpCommands } from './services/commands.ts';
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
-import { type Color, rainbowProvider } from './services/rainbow.ts';
-import type { Unsubscribe } from './services/reactive.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
@@ -23,13 +21,6 @@ interface CommandResultResponse {
 
 type Response = CommandResponse | CommandResultResponse;
 
-const toHexColor = (color: Color) => {
-	const r = color[0].toString(16).padStart(2, '0');
-	const g = color[1].toString(16).padStart(2, '0');
-	const b = color[2].toString(16).padStart(2, '0');
-	return `#${r}${g}${b}`;
-};
-
 export class Terminal extends Component {
 	static styles = css`
 		:host {
@@ -37,8 +28,6 @@ export class Terminal extends Component {
 			height: 100%;
 			max-width: 850px;
 			max-height: 550px;
-
-			--glow-color: #6400FFFF;
 		}
 
 		.terminal {
@@ -226,11 +215,6 @@ export class Terminal extends Component {
 		this.inputElement.suggestPlaceholder(randomeCommand.name);
 	}
 
-	setGlowColor(color: string) {
-		// This is not the ideal way to do this in Lit, but to prevent rerendering the entire component on every color change, we directly manipulate the style here.
-		this.style.setProperty('--glow-color', color);
-	}
-
 	connectedCallback(): void {
 		super.connectedCallback();
 		this.addEventListener('click', this.#focusInput);
@@ -241,22 +225,6 @@ export class Terminal extends Component {
 		this.#suggestionTimeout = window.setInterval(() => {
 			this.#makeRandomSuggestion();
 		}, 15_000);
-
-		let rainbowSubscriber: Unsubscribe | null = null;
-		configService.subscribe(config => {
-			if (config.glowColor === 'rainbow') {
-				rainbowSubscriber?.();
-				rainbowSubscriber = rainbowProvider.subscribe(() => {
-					const colorStr = toHexColor(rainbowProvider.value);
-					this.setGlowColor(colorStr);
-				}, true);
-				return;
-			}
-
-			rainbowSubscriber?.();
-			rainbowSubscriber = null;
-			this.setGlowColor(config.glowColor);
-		}, true);
 	}
 
 	disconnectedCallback(): void {
@@ -287,13 +255,6 @@ export class Terminal extends Component {
 					</div>
 				</div>
 				<div class="body">
-					<!-- <div class="terminal-commands discrete-scrollbar">
-						<div class="commands-header">
-							Commands
-						</div>
-						<div id="commands-list">
-						</div>
-					</div> -->
 					<div class="terminal-content">
 						<div class="history" ${ref(this.#historyRef)}>
 							${map(this.responses, response => this.renderResponse(response))}

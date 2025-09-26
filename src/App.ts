@@ -1,8 +1,7 @@
 import { css, html } from 'lit';
 import { Component } from './litutil/Component.ts';
-import { configService } from './services/config.ts';
 import { faviconSetter } from './services/favicon-setter.ts';
-import { rainbowProvider } from './services/rainbow.ts';
+import { glowColorProvider } from './services/glow-color-provider.ts';
 
 export class App extends Component {
 	static styles = css`
@@ -29,19 +28,10 @@ export class App extends Component {
 	connectedCallback(): void {
 		super.connectedCallback();
 
-		rainbowProvider.subscribe(color => {
-			if (configService.value.glowColor !== 'rainbow') return;
+		glowColorProvider.subscribe(color => {
+			document.body.style.setProperty('--glow-color', color);
 			faviconSetter.setColor(color);
 		}, true);
-		configService.observeKey(
-			'glowColor',
-			color => {
-				if (color !== 'rainbow') {
-					faviconSetter.setColor(color);
-				}
-			},
-			true,
-		);
 	}
 
 	render() {
