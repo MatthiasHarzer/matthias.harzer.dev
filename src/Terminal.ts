@@ -3,10 +3,10 @@ import { state } from 'lit/decorators/state.js';
 import { map } from 'lit/directives/map.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
-import type { CommandResult } from './services/command-result.ts';
-import { commandNotFound, findCommand, helpCommands } from './services/commands.ts';
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
+import type { CommandResult } from './terminal/command.ts';
+import { commandNotFound, findCommand, helpCommands } from './terminal/commands.ts';
 import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
