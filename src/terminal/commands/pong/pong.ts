@@ -172,7 +172,7 @@ class PongComponent extends Component {
 	}
 
 	adjustAIPaddle(delta: number) {
-		// calclulate the target position where the ball will hit the right paddle
+		// calculate the target position where the ball will hit the right paddle
 		const timeToReachPaddle = (this.width - this.ballX) / this.ballVX;
 		let targetY = this.ballY + this.ballVY * timeToReachPaddle;
 
