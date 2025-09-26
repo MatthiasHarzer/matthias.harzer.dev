@@ -1,0 +1,117 @@
+import type { Terminal } from '../../Terminal.ts';
+import {
+	type Command,
+	type CommandResult,
+	highlight,
+	indentation,
+	linebreak,
+	mentionCommandName,
+	mentionCommandUsage,
+	type ResultItem,
+	text,
+} from '../command.ts';
+import { findCommand, helpCommands } from '../commands.ts';
+
+const basicCommandUsageDetails = (terminal: Terminal, command: Command): ResultItem[] => {
+	return [
+		mentionCommandName(terminal, command.name),
+		text(' - '),
+		text(command.description ?? 'No description available.'),
+		linebreak(1),
+		text('Usage: '),
+		mentionCommandUsage(terminal, command, command.name),
+	];
+};
+
+class HelpCommand implements Command {
+	name = 'help';
+	description = 'Lists all available commands.';
+	isHidden = false;
+	noHelp = false;
+
+	#overview(terminal: Terminal): CommandResult {
+		const commandItems: ResultItem[] = [text('Available commands:'), linebreak(1)];
+		helpCommands.forEach((cmd, index) => {
+			if (index > 0) {
+				commandItems.push(linebreak());
+			}
+			commandItems.push(
+				mentionCommandName(terminal, cmd.name),
+				text(' - '),
+				text(cmd.description ?? 'No description available.'),
+			);
+		});
+
+		commandItems.push(
+			linebreak(1),
+			text('Type '),
+			mentionCommandName(terminal, 'help <command>', 'help '),
+			text(' to get more information about a specific command.'),
+		);
+
+		return commandItems;
+	}
+
+	async #details(terminal: Terminal, args: string[]): Promise<CommandResult | null> {
+		if (args.length === 0) {
+			return [];
+		}
+
+		const commandName = args[0];
+		const remainingArgs = args.slice(1);
+		const command = findCommand(commandName);
+		if (!command) {
+			return [highlight('error:', 'error'), text(` ${commandName}: command not found.`)];
+		}
+
+		const basicDetails = basicCommandUsageDetails(terminal, command);
+		if (command.provideHelpDetails) {
+			const execute = command.provideHelpDetails(terminal);
+
+			const additionalDetails = await execute(...remainingArgs);
+			if (additionalDetails === null || additionalDetails.length === 0) {
+				return basicDetails;
+			}
+
+			return [...basicDetails, linebreak(1), ...additionalDetails];
+		}
+
+		return [
+			...basicDetails,
+			linebreak(1.5),
+			text('No additional help available for this command.'),
+		];
+	}
+
+	prepare(terminal: Terminal) {
+		return async (...command: string[]) => {
+			if (command.length === 0) {
+				return this.#overview(terminal);
+			}
+			return await this.#details(terminal, command);
+		};
+	}
+
+	provideHelpDetails(terminal: Terminal) {
+		return (...args: string[]) => {
+			if (args.length === 0) {
+				return [
+					text('Examples:'),
+					linebreak(),
+					indentation(2, [
+						mentionCommandName(terminal, 'help', 'help'),
+						text(' - Lists all available commands.'),
+						linebreak(),
+						mentionCommandName(terminal, 'help config', 'help config'),
+						text(' - Displays detailed information about the "config" command.'),
+					]),
+				];
+			}
+			return [];
+		};
+	}
+}
+
+const help: Command = new HelpCommand();
+
+export default help;

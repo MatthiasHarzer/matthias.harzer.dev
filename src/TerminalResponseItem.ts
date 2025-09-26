@@ -2,7 +2,7 @@ import { css, html, type TemplateResult } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from './litutil/Component.ts';
-import type { CommandResult, ResultItem } from './services/command-result.ts';
+import type { CommandResult, ResultItem } from './terminal/command.ts';
 
 const cutText = (text: string, maxLength: number) => {
 	if (maxLength === -1) {
