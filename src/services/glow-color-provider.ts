@@ -1,6 +1,10 @@
 import { configService } from './config.ts';
-import { rainbowProvider } from './rainbow.ts';
+import { type Color, rainbowProvider } from './rainbow.ts';
 import { Observable, type ReadOnlyObservable } from './reactive.ts';
+
+const colorToRgb = (color: Color): string => {
+	return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+};
 
 class GlowColorProvider extends Observable<string> {
 	constructor() {
@@ -12,7 +16,7 @@ class GlowColorProvider extends Observable<string> {
 		});
 		rainbowProvider.subscribe(color => {
 			if (configService.value.glowColor !== 'rainbow') return;
-			this.set(`rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+			this.set(colorToRgb(color));
 		}, true);
 	}
 }
