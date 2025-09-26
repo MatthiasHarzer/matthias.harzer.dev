@@ -620,9 +620,9 @@ class PongCommand implements Command {
 						text('Controls:'),
 						linebreak(),
 						indentation(2, [
-							text('  Left Player: W/S'),
+							text('Left Player: W/S'),
 							linebreak(),
-							text('  Right Player: Arrow Up/Down'),
+							text('Right Player: Arrow Up/Down'),
 						]),
 						linebreak(1),
 						text('First to 5 points wins.'),
