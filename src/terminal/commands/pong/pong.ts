@@ -15,6 +15,7 @@ import {
 	type TerminalFunction,
 	text,
 } from '../../terminal.ts';
+import { PongGame } from './game.ts';
 
 class PongComponent extends Component {
 	static styles = css`
@@ -82,6 +83,8 @@ class PongComponent extends Component {
 	#ballSpeed: number = 10;
 	#scoreToWin: number = 5;
 	#localStorageKey: string = 'terminal-pong-highscore';
+
+	pongGame: PongGame | null;
 
 	@property({ attribute: false }) terminal: Terminal | null = null;
 	@property({ type: Boolean, attribute: 'enable-2nd-player' }) enable2ndPlayer = false;
@@ -378,16 +381,16 @@ class PongComponent extends Component {
 			}),
 		);
 
-		let lastTime: number | null = null;
-		const frame = (time: number) => {
-			if (lastTime !== null) {
-				const delta = (time - lastTime) / 16.6667; // assuming 60fps
-				this.loop(delta);
-			}
-			lastTime = time;
-			requestAnimationFrame(frame);
-		};
-		requestAnimationFrame(frame);
+		// let lastTime: number | null = null;
+		// const frame = (time: number) => {
+		// 	if (lastTime !== null) {
+		// 		const delta = (time - lastTime) / 16.6667; // assuming 60fps
+		// 		this.loop(delta);
+		// 	}
+		// 	lastTime = time;
+		// 	requestAnimationFrame(frame);
+		// };
+		// requestAnimationFrame(frame);
 	}
 
 	unsubscribeAll() {
@@ -582,6 +585,10 @@ class PongCommand implements Command {
 	name = 'pong';
 	description = 'Play a game of pong';
 	prepare(terminal: Terminal): TerminalFunction {
+		const game = new PongGame('single-player');
+		game.state.subscribe(() => {
+			console.log(game.state.$);
+		}, true);
 		return (option: string = '') => {
 			terminal.disableInput();
 			const enable2ndPlayer = option.toLowerCase().trim() === 'vs';
