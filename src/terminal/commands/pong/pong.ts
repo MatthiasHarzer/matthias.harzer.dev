@@ -4,7 +4,6 @@ import { state } from 'lit/decorators/state.js';
 import { Component } from '../../../litutil/Component.ts';
 import { keyListener } from '../../../services/hotkey-listener.ts';
 import type { Unsubscribe } from '../../../services/reactive.ts';
-import { observeSize } from '../../../services/size.ts';
 import type { Terminal } from '../../../Terminal.ts';
 import {
 	type Command,
@@ -86,7 +85,6 @@ class PongComponent extends Component {
 	@property({ attribute: false }) terminal: Terminal | null = null;
 	@property({ type: Boolean, attribute: 'enable-2nd-player' }) enable2ndPlayer = false;
 
-	@state() width = 300;
 	@state() ballX: number = 150;
 	@state() ballY: number = 150;
 	@state() ballVX: number = this.#ballSpeed / 2;
@@ -112,6 +110,10 @@ class PongComponent extends Component {
 
 	get has2ndPlayer() {
 		return this.enable2ndPlayer;
+	}
+
+	get width() {
+		return this.rect.width;
 	}
 
 	continue() {
@@ -372,11 +374,6 @@ class PongComponent extends Component {
 
 		this.#subscriptions.push(keyListener.on('Escape', () => this.exit()));
 		this.#subscriptions.push(keyListener.on(' ', () => this.continue()));
-		this.#subscriptions.push(
-			observeSize(this.shadowRoot?.host as HTMLElement, rect => {
-				this.width = rect.width;
-			}),
-		);
 
 		let lastTime: number | null = null;
 		const frame = (time: number) => {
