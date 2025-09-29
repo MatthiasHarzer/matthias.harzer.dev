@@ -1,7 +1,5 @@
-import { css, type CSSResultGroup, LitElement, type PropertyValues } from 'lit';
+import { type CSSResultGroup, css, LitElement } from 'lit';
 import { type BaseObject, ReactiveObject } from '../services/reactive-object.js';
-import type { Unsubscribe } from '../services/reactive.js';
-import { observeSize } from '../services/size.js';
 
 const cssOverwrites = css`
 

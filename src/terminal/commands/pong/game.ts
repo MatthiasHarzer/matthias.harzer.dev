@@ -1,7 +1,7 @@
 import { keyListener } from '../../../services/hotkey-listener.ts';
 import { random } from '../../../services/random.ts';
-import { ReactiveObject } from '../../../services/reactive-object.ts';
 import { Observable, type ReadOnlyObservable } from '../../../services/reactive.ts';
+import { ReactiveObject } from '../../../services/reactive-object.ts';
 import { type GameStrategy, LocalTwoPlayerStrategy, SinglePlayerStrategy } from './strategies.ts';
 
 interface Vector2 {
