@@ -113,6 +113,21 @@ class PongComponent extends Component {
 
 	#subscriptions: Unsubscribe[] = [];
 
+	constructor() {
+		super();
+
+		this.pongGame = new PongGame({
+			mode: 'single-player',
+			ball: { size: 10, speed: 10 },
+			field: { width: terminal.rect.width, height: 300 },
+			paddle: { width: 10, height: 50, speed: 5 },
+			pointsToWin: 5,
+		});
+		game.state.subscribe(() => {
+			console.log(game.state.$);
+		}, true);
+	}
+
 	get has2ndPlayer() {
 		return this.enable2ndPlayer;
 	}
@@ -585,10 +600,6 @@ class PongCommand implements Command {
 	name = 'pong';
 	description = 'Play a game of pong';
 	prepare(terminal: Terminal): TerminalFunction {
-		const game = new PongGame('single-player');
-		game.state.subscribe(() => {
-			console.log(game.state.$);
-		}, true);
 		return (option: string = '') => {
 			terminal.disableInput();
 			const enable2ndPlayer = option.toLowerCase().trim() === 'vs';
