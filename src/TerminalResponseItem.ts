@@ -73,6 +73,10 @@ export class TerminalResponseItem extends Component {
 				color: #31b9f6;
 			}
 
+			&.react {
+				color: #58c4dc;
+			}
+
 			&.java {
 				color: #b07219;
 			}
@@ -114,15 +118,28 @@ export class TerminalResponseItem extends Component {
 				-webkit-text-fill-color: transparent;
 			}
 
-			&.hka {
+			&.hka, &.isrg {
 				color: #d72305;
+			}
+
+			&.simpleagridata {
+				color: #f59224;
 			}
 
 			&.thenativeweb {
 				color: #dd0099;
 			}
 
+			&.cqrs {
+				color: #ffc929;
+			}
+
+			&.ddd{
+				color: #ff6f00;
+			}
+
 			&.eventql,
+			&.eventsourcing,
 			&.eventsourcingdb {
 				color: #25a55a;
 			}

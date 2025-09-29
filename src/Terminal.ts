@@ -5,9 +5,9 @@ import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
-import type { TerminalInput } from './TerminalInput.ts';
 import { commandNotFound, findCommand, helpCommands } from './terminal/commands.ts';
 import type { Command, TerminalResponse } from './terminal/terminal.ts';
+import type { TerminalInput } from './TerminalInput.ts';
 
 interface CommandResponse {
 	type: 'text';
@@ -26,8 +26,8 @@ export class Terminal extends Component {
 		:host {
 			width: 100%;
 			height: 100%;
-			max-width: 850px;
-			max-height: 550px;
+			max-width: 870px;
+			max-height: 580px;
 		}
 
 		.terminal {
