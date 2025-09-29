@@ -1,10 +1,21 @@
 import { keyListener } from '../../../services/hotkey-listener.ts';
+import { random } from '../../../services/random.ts';
 import { ReactiveObject } from '../../../services/reactive-object.ts';
-import { SinglePlayerStrategy } from './strategies.ts';
+import { Observable, type ReadOnlyObservable } from '../../../services/reactive.ts';
+import { type GameStrategy, LocalTwoPlayerStrategy, SinglePlayerStrategy } from './strategies.ts';
 
 interface Vector2 {
 	x: number;
 	y: number;
+}
+
+type Phase = 'initial' | 'running' | 'point-scored' | 'game-over' | 'stopped';
+
+interface GameConfig {
+	field: { width: number; height: number };
+	paddle: { width: number; height: number; speed: number };
+	ball: { size: number; speed: number };
+	pointsToWin: number;
 }
 
 interface GameState {
@@ -20,79 +31,61 @@ interface GameState {
 		position: Vector2;
 		velocity: Vector2;
 	};
-	phase: 'initial' | 'running' | 'point-scored' | 'game-over';
+	phase: Phase;
 }
 
-interface GameConfig {
-	mode: 'single-player' | 'two-player';
-	field: { width: number; height: number };
-	paddle: { width: number; height: number; speed: number };
-	ball: { size: number; speed: number };
-	pointsToWin: number;
-}
-
-abstract class GameStrategy {
-	readonly game: PongGame;
-
-	constructor(game: PongGame) {
-		this.game = game;
-	}
-
-	get state() {
-		return this.game.state;
-	}
-
-	get config() {
-		return this.game.config;
-	}
-
-	abstract resetBall(): void;
-	abstract tick(deltaTime: number): void;
-	abstract continue(): void;
-}
+type Mode = 'single-player' | 'two-player';
 
 class PongGame {
 	readonly state: ReactiveObject<GameState>;
 	readonly config: ReactiveObject<GameConfig>;
 	readonly strategy: GameStrategy;
+	readonly mode: Mode;
+	private readonly _phase = new Observable<Phase>('initial');
 
-	constructor(config: GameConfig) {
+	get phase(): ReadOnlyObservable<Phase> {
+		return this._phase;
+	}
+
+	constructor(mode: Mode, config: ReactiveObject<GameConfig>) {
 		this.state = new ReactiveObject<GameState>({
 			playerLeft: { position: { x: 0, y: 0 }, score: 0 },
 			playerRight: { position: { x: 0, y: 0 }, score: 0 },
 			ball: {
 				position: { x: 0, y: 0 },
-				velocity: { x: config.ball.speed / 2, y: config.ball.speed / 2 },
+				velocity: { x: 0, y: 0 },
 			},
 			phase: 'initial',
 		});
-		// TODO: move?
-		this.config = new ReactiveObject<GameConfig>(config);
+		this.config = config;
+		this.mode = mode;
+		this.state.subscribe(() => {
+			this._phase.set(this.state.$.phase);
+		}, false);
 
 		keyListener.on(' ', () => {
 			this.strategy.continue();
 		});
+		keyListener.on('Escape', () => {
+			this.state.$.phase = 'stopped';
+		});
 
-		switch (config.mode) {
+		switch (mode) {
 			case 'single-player':
 				this.strategy = new SinglePlayerStrategy(this);
 				break;
 			case 'two-player':
-				throw new Error('Two-player mode not implemented yet');
+				this.strategy = new LocalTwoPlayerStrategy(this);
 		}
-
-		this.setup();
-	}
-
-	get $state() {
-		return this.state.$;
 	}
 
 	get has2ndPlayer() {
-		return this.config.$.mode === 'two-player';
+		return this.mode === 'two-player';
 	}
 
 	setup() {
+		this.strategy.setup();
+
 		let lastTime: number | null = null;
 		const frame = (time: number) => {
 			if (lastTime !== null) {
@@ -124,7 +117,11 @@ class PongGame {
 	}
 
 	reflectBallX() {
+		const randomYSpeedOffset = random(-this.config.$.ball.speed / 4, this.config.$.ball.speed / 4);
+		const ySpeed = this.config.$.ball.speed / 2 + randomYSpeedOffset;
+
 		this.state.$.ball.velocity.x = -this.state.$.ball.velocity.x;
+		this.state.$.ball.velocity.y = ySpeed * Math.sign(this.state.$.ball.velocity.y);
 	}
 
 	paddleYUp(current: number, delta: number) {
@@ -198,5 +195,5 @@ class PongGame {
 	}
 }
 
-export { GameStrategy, PongGame };
+export { PongGame };
 export type { GameConfig, GameState };

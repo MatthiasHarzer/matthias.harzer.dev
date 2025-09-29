@@ -1,4 +1,4 @@
-import { type CSSResultGroup, type PropertyValues, css, LitElement } from 'lit';
+import { css, type CSSResultGroup, LitElement, type PropertyValues } from 'lit';
 import { type BaseObject, ReactiveObject } from '../services/reactive-object.js';
 import type { Unsubscribe } from '../services/reactive.js';
 import { observeSize } from '../services/size.js';
@@ -55,11 +55,8 @@ export class Component extends LitElement {
 		Component._styles = styles;
 	}
 
-	private resizeSubscribtion: Unsubscribe | null = null;
-	private _rect: DOMRectReadOnly | null = null;
-
-	get rect(): DOMRectReadOnly {
-		return this._rect ?? this.getBoundingClientRect();
+	get rect() {
+		return this.getBoundingClientRect();
 	}
 
 	sleep(ms: number) {
@@ -68,15 +65,6 @@ export class Component extends LitElement {
 
 	connectedCallback(): void {
 		super.connectedCallback();
-	}
-
-	protected firstUpdated(_changedProperties: PropertyValues): void {
-		super.firstUpdated(_changedProperties);
-
-		this.resizeSubscribtion = observeSize(this, rect => {
-			this._rect = rect;
-			this.requestUpdate();
-		});
 	}
 
 	dispatch<T>(
@@ -93,7 +81,6 @@ export class Component extends LitElement {
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
-		this.resizeSubscribtion?.();
 	}
 }
 

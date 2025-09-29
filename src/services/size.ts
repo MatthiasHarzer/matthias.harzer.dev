@@ -1,15 +1,15 @@
-import type { Subscriber, Unsubscribe } from './reactive.ts';
+import { Observable, type ReadOnlyObservable } from './reactive.ts';
 
-const observeSize = (element: HTMLElement, callback: Subscriber<DOMRectReadOnly>): Unsubscribe => {
+const observeSize = (element: HTMLElement): ReadOnlyObservable<DOMRectReadOnly> => {
+	const observable = new Observable<DOMRectReadOnly>(element.getBoundingClientRect());
+
 	const resizeObserver = new ResizeObserver(() => {
 		const rect = element.getBoundingClientRect();
-		callback(rect);
+		observable.set(rect);
 	});
 	resizeObserver.observe(element);
 
-	return () => {
-		resizeObserver.disconnect();
-	};
+	return observable;
 };
 
 export { observeSize };
