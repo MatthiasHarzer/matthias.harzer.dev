@@ -89,21 +89,27 @@ class SnakeGame {
 		this.state.$.food = newFoodPosition;
 	}
 
-	movePart(part: SnakePart) {
+	nextPosition(part: SnakePart): Vector2 {
+		const position = { ...part.position };
 		switch (part.direction) {
 			case 'up':
-				part.position.y -= 1;
+				position.y -= 1;
 				break;
 			case 'down':
-				part.position.y += 1;
+				position.y += 1;
 				break;
 			case 'left':
-				part.position.x -= 1;
+				position.x -= 1;
 				break;
 			case 'right':
-				part.position.x += 1;
+				position.x += 1;
 				break;
 		}
+		return position;
+	}
+
+	movePart(part: SnakePart) {
+		part.position = this.nextPosition(part);
 	}
 
 	applyDirection(newDirection: Direction | null) {
@@ -152,10 +158,14 @@ class SnakeGame {
 	}
 
 	checkCollisions() {
+		// Using a predicted head position to always keep the snake inside the bounds
+		const nextHeadPosition = this.nextPosition(this.head);
+
 		// Check food collision
-		const headHitsFood =
-			this.head.position.x === this.state.$.food.x && this.head.position.y === this.state.$.food.y;
-		if (headHitsFood) {
+		const willHitFood =
+			nextHeadPosition.x === this.state.$.food.x && nextHeadPosition.y === this.state.$.food.y;
+
+		if (willHitFood) {
 			// Increase score
 			this.state.$.score += 1;
 			this.addSnakePart();
@@ -163,20 +173,20 @@ class SnakeGame {
 		}
 
 		// Check wall collisions
-		const headHitWall =
-			this.head.position.x < 0 ||
-			this.head.position.x >= this.config.$.blocksWidth ||
-			this.head.position.y < 0 ||
-			this.head.position.y >= this.config.$.blocksHeight;
-		if (headHitWall) {
+		const willHitWall =
+			nextHeadPosition.x < 0 ||
+			nextHeadPosition.x >= this.config.$.blocksWidth ||
+			nextHeadPosition.y < 0 ||
+			nextHeadPosition.y >= this.config.$.blocksHeight;
+		if (willHitWall) {
 			this.gameOver();
 			return;
 		}
 
-		const headHitBody = this.state.$.snake.slice(1).some(part => {
-			return part.position.x === this.head.position.x && part.position.y === this.head.position.y;
+		const willHitBody = this.state.$.snake.slice(1).some(part => {
+			return part.position.x === nextHeadPosition.x && part.position.y === nextHeadPosition.y;
 		});
-		if (headHitBody) {
+		if (willHitBody) {
 			this.gameOver();
 			return;
 		}
