@@ -1,4 +1,4 @@
-import { html } from 'lit';
+import { html, type TemplateResult } from 'lit';
 import type { Terminal } from '../../../Terminal.ts';
 import {
 	type Command,
@@ -15,14 +15,25 @@ class PongCommand implements Command {
 	description = 'Play a game of pong';
 	prepare(terminal: Terminal): TerminalFunction {
 		return (option: string = '') => {
-			terminal.disableInput();
-			const enable2ndPlayer = option.toLowerCase().trim() === 'vs';
+			let content: TemplateResult;
 
-			return [
-				component(
-					html`<mh-terminal-pong .terminal=${terminal} ?enable-2nd-player=${enable2ndPlayer}></mh-terminal-pong>`,
-				),
-			];
+			switch (option.toLowerCase().trim()) {
+				case '':
+					content = html`<mh-terminal-pong .terminal=${terminal}></mh-terminal-pong>`;
+					break;
+				case 'vs':
+					content = html`<mh-terminal-pong .terminal=${terminal} enable-2nd-player></mh-terminal-pong>`;
+					break;
+				default:
+					return [
+						text(`Unknown option "${option}". Try "`),
+						mentionCommandName(terminal, 'vs', 'pong vs'),
+						text('".'),
+					];
+			}
+
+			terminal.disableInput();
+			return [component(content)];
 		};
 	}
 	provideHelpDetails(terminal: Terminal): TerminalFunction {
@@ -37,7 +48,9 @@ class PongCommand implements Command {
 					linebreak(),
 					indentation(2, [
 						mentionCommandName(terminal, 'pong'),
-						text(' - Starts a single player infinite game. Try to maximize your highscore!'),
+						text(
+							' - Starts a single player infinite game. For every ball you hit, you get a point. Try to maximize your highscore!',
+						),
 						linebreak(),
 						mentionCommandName(terminal, 'pong vs'),
 						text(' - Starts a two player game. First to 5 points wins.'),

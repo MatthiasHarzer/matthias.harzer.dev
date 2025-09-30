@@ -2,8 +2,8 @@ import { css, html, type PropertyValues, svg } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from '../../../litutil/Component.ts';
-import type { Unsubscribe } from '../../../services/reactive.ts';
 import { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { Unsubscribe } from '../../../services/reactive.ts';
 import { observeSize } from '../../../services/size.ts';
 import type { Terminal } from '../../../Terminal.ts';
 import { type GameConfig, PongGame } from './game.ts';
@@ -34,6 +34,14 @@ class PongComponent extends Component {
 			font-size: 20px;
 			pointer-events: none;
 			text-align: center;
+		}
+
+		.single-player-hint {
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0 20px;
 		}
 
 		.game-over {
@@ -236,14 +244,29 @@ class PongComponent extends Component {
 	renderOverlay() {
 		const state = this.game.state.$;
 		switch (state?.phase) {
-			case 'initial':
-				return html`
-					<div>
+			case 'initial': {
+				const startHint = html`
+					<div class="start-hint">
 						<span>Press Space to start the game</span>
 						<br />
 						Highscore: ${this.highscore}
+					</div>`;
+				if (this.game.has2ndPlayer) {
+					return startHint;
+				}
+
+				return html`
+					<div class="single-player-hint">
+						<div class="player-left-hint">
+							<span><- You</span>
+						</div>
+						${startHint}
+						<div class="player-right-hint">
+							<span>AI -></span>
+						</div>
 					</div>
 				`;
+			}
 			case 'running': {
 				if (this.game.has2ndPlayer) {
 					return html`
