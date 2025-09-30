@@ -3,6 +3,10 @@ import { Observable } from './reactive.ts';
 // biome-ignore lint/suspicious/noExplicitAny: any is needed to store the state
 export type BaseObject = Record<string, any>;
 
+const isObject = (value: unknown): value is BaseObject => {
+	return typeof value === 'object' && value !== null;
+};
+
 export class ReactiveObject<TObject extends BaseObject> extends Observable<TObject> {
 	private reactableValue: TObject;
 
@@ -16,8 +20,8 @@ export class ReactiveObject<TObject extends BaseObject> extends Observable<TObje
 		return new Proxy(value, {
 			get: (target: T, prop: string) => {
 				const value = target[prop];
-				if (typeof value === 'object' && value !== null) {
-					return this.#createProxy(value as BaseObject);
+				if (isObject(value)) {
+					return this.#createProxy(value);
 				}
 				return value;
 			},
@@ -27,6 +31,14 @@ export class ReactiveObject<TObject extends BaseObject> extends Observable<TObje
 					this.notifySubscribers();
 					return true;
 				}
+
+				const index = Number(prop);
+				if (Array.isArray(target) && !Number.isNaN(index)) {
+					(target as Array<unknown>)[index] = value;
+					this.notifySubscribers();
+					return true;
+				}
+
 				return false;
 			},
 		}) as T;

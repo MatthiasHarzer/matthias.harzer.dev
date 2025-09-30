@@ -1,17 +1,9 @@
 import { keyListener } from '../../../services/hotkey-listener.ts';
 import { random } from '../../../services/random.ts';
-import {
-	Observable,
-	type ReadOnlyObservable,
-	type Unsubscribe,
-} from '../../../services/reactive.ts';
-import { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { Vector2 } from '../../games/components.ts';
+import { TerminalGame } from '../../games/game.ts';
 import { type GameStrategy, LocalTwoPlayerStrategy, SinglePlayerStrategy } from './strategies.ts';
-
-interface Vector2 {
-	x: number;
-	y: number;
-}
 
 type Phase = 'initial' | 'running' | 'point-scored' | 'game-over' | 'stopped';
 
@@ -40,20 +32,13 @@ interface GameState {
 
 type Mode = 'single-player' | 'two-player';
 
-class PongGame {
-	readonly state: ReactiveObject<GameState>;
+class PongGame extends TerminalGame<GameState, Phase> {
 	readonly config: ReactiveObject<GameConfig>;
 	readonly strategy: GameStrategy;
 	readonly mode: Mode;
-	private readonly _phase = new Observable<Phase>('initial');
-	private readonly subscriptions: Unsubscribe[] = [];
-
-	get phase(): ReadOnlyObservable<Phase> {
-		return this._phase;
-	}
 
 	constructor(mode: Mode, config: ReactiveObject<GameConfig>) {
-		this.state = new ReactiveObject<GameState>({
+		super({
 			playerLeft: { position: { x: 0, y: 0 }, score: 0 },
 			playerRight: { position: { x: 0, y: 0 }, score: 0 },
 			ball: {
@@ -95,19 +80,13 @@ class PongGame {
 		return this.mode === 'two-player';
 	}
 
-	setup() {
-		this.strategy.setup();
+	tick(deltaTime: number): void {
+		this.strategy.tick(deltaTime);
+	}
 
-		let lastTime: number | null = null;
-		const frame = (time: number) => {
-			if (lastTime !== null) {
-				const delta = (time - lastTime) / 16.6667; // assuming 60fps
-				this.strategy.tick(delta);
-			}
-			lastTime = time;
-			requestAnimationFrame(frame);
-		};
-		requestAnimationFrame(frame);
+	setup() {
+		super.setup();
+		this.strategy.setup();
 	}
 
 	moveBall(delta: number) {
@@ -204,12 +183,6 @@ class PongGame {
 
 	isOutOfBoundsRight() {
 		return this.state.$.ball.position.x - this.config.$.ball.size / 2 > this.config.$.field.width;
-	}
-
-	dispose() {
-		for (const unsubscribe of this.subscriptions) {
-			unsubscribe();
-		}
 	}
 }
 
