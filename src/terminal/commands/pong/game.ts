@@ -184,13 +184,6 @@ class PongGame extends TerminalGame<GameState, Phase> {
 	isOutOfBoundsRight() {
 		return this.state.$.ball.position.x - this.config.$.ball.size / 2 > this.config.$.field.width;
 	}
-
-	dispose() {
-		for (const unsubscribe of this.subscriptions) {
-			unsubscribe();
-		}
-		this.state.disconnect();
-	}
 }
 
 export { PongGame };
