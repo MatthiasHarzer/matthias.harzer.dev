@@ -55,6 +55,10 @@ class SinglePlayerStrategy extends GameStrategy {
 	}
 
 	adjustAIPaddle(deltaTime: number) {
+		if (this.state.$.ball.velocity.x === 0) {
+			return;
+		}
+
 		// calculate the target position where the ball will hit the right paddle
 		const timeToReachPaddle =
 			(this.config.$.field.width - this.state.$.ball.position.x) / this.state.$.ball.velocity.x;

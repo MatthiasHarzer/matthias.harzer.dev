@@ -162,7 +162,7 @@ class PongComponent extends Component {
 		for (const unsub of this.#subscriptions) {
 			unsub();
 		}
-		this.game.dispose();
+		this.pongGame?.dispose();
 		this.#subscriptions = [];
 	}
 
