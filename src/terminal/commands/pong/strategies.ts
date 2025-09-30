@@ -54,7 +54,7 @@ class SinglePlayerStrategy extends GameStrategy {
 		};
 	}
 
-	adjustAIPaddle(delta: number) {
+	adjustAIPaddle(deltaTime: number) {
 		// calculate the target position where the ball will hit the right paddle
 		const timeToReachPaddle =
 			(this.config.$.field.width - this.state.$.ball.position.x) / this.state.$.ball.velocity.x;
@@ -69,11 +69,21 @@ class SinglePlayerStrategy extends GameStrategy {
 			}
 		}
 
-		// move the paddle towards the target position smoothly
-		if (this.state.$.playerRight.position.y < targetY - 10) {
-			this.state.$.playerRight.position.y += this.config.$.paddle.speed * delta;
-		} else if (this.state.$.playerRight.position.y > targetY + 10) {
-			this.state.$.playerRight.position.y -= this.config.$.paddle.speed * delta;
+		const deltaY = targetY - this.state.$.playerRight.position.y;
+		const movingTowardsAiPlayer = this.state.$.ball.velocity.x > 0;
+
+		// move the paddle smoothly towards the target position. If the ball is moving away, center the paddle.
+		if (movingTowardsAiPlayer) {
+			const moveAmount =
+				Math.sign(deltaY) * Math.min(Math.abs(deltaY), this.config.$.paddle.speed * deltaTime);
+			this.state.$.playerRight.position.y += moveAmount;
+		} else {
+			const centerY = this.config.$.field.height / 2;
+			const centerDeltaY = centerY - this.state.$.playerRight.position.y;
+			const moveAmount =
+				Math.sign(centerDeltaY) *
+				Math.min(Math.abs(centerDeltaY), this.config.$.paddle.speed * deltaTime);
+			this.state.$.playerRight.position.y += moveAmount;
 		}
 
 		// clamp the paddle position within the game area
