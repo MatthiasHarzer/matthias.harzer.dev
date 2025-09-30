@@ -1,11 +1,8 @@
 import { keyListener } from '../../../services/hotkey-listener.ts';
-import {
-	Observable,
-	type ReadOnlyObservable,
-	type Unsubscribe,
-} from '../../../services/reactive.ts';
-import { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { ReadOnlyObservable } from '../../../services/reactive.ts';
+import type { ReactiveObject } from '../../../services/reactive-object.ts';
 import type { Vector2 } from '../../games/components.ts';
+import { TerminalGame } from '../../games/game.ts';
 
 interface SnakeGameConfig {
 	blockSize: number;
@@ -38,12 +35,10 @@ const oppositeDirections: Record<Direction, Direction> = {
 	right: 'left',
 };
 
-class SnakeGame {
+class SnakeGame extends TerminalGame<SnakeGameState, Phase> {
+	protected nextDirection: Direction | null = null;
+	protected deltaTimeAccumulator = 0;
 	readonly config: ReactiveObject<SnakeGameConfig>;
-	readonly state: ReactiveObject<SnakeGameState>;
-	private readonly _phase = new Observable<Phase>('initial');
-	private readonly subscriptions: Unsubscribe[] = [];
-	nextDirection: Direction | null = null;
 
 	get head() {
 		return this.state.$.snake[0];
@@ -53,14 +48,18 @@ class SnakeGame {
 		return this._phase;
 	}
 
+	get interval() {
+		return 1000 / this.config.$.fps;
+	}
+
 	constructor(config: ReactiveObject<SnakeGameConfig>) {
-		this.config = config;
-		this.state = new ReactiveObject<SnakeGameState>({
+		super({
 			snake: [],
 			food: { x: -2, y: -2 },
 			phase: 'initial',
 			score: 0,
 		});
+		this.config = config;
 		this.resetSnake();
 
 		this.subscriptions.push(keyListener.on(' ', () => this.continue()));
@@ -70,8 +69,6 @@ class SnakeGame {
 				this._phase.set(this.state.$.phase);
 			}, false),
 		);
-
-		this.setup();
 	}
 
 	placeNextFood() {
@@ -214,24 +211,13 @@ class SnakeGame {
 		this.movePart(this.head);
 	}
 
-	setup() {
-		let lastTime: number | null = null;
-		const interval = 1000 / this.config.$.fps;
-		const frame = (time: number) => {
-			if (!lastTime) {
-				lastTime = time;
-			}
-
-			this.handleInput();
-
-			const deltaTime = time - lastTime;
-			if (deltaTime >= interval) {
-				this.loop(deltaTime);
-				lastTime = time;
-			}
-			requestAnimationFrame(frame);
-		};
-		requestAnimationFrame(frame);
+	tick(deltaTime: number): void {
+		this.handleInput();
+		this.deltaTimeAccumulator += deltaTime;
+		if (this.deltaTimeAccumulator >= this.interval) {
+			this.loop(this.deltaTimeAccumulator);
+			this.deltaTimeAccumulator -= this.interval;
+		}
 	}
 
 	resetSnake() {
@@ -265,13 +251,6 @@ class SnakeGame {
 
 	exit() {
 		this.state.$.phase = 'stopped';
-	}
-
-	dispose() {
-		for (const unsubscribe of this.subscriptions) {
-			unsubscribe();
-		}
-		this.state.disconnect();
 	}
 }
 
