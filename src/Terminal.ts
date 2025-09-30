@@ -269,8 +269,6 @@ export class Terminal extends Component {
 			this.terminalWidth = entries[0].contentRect.width;
 		});
 		this.#resizeObserver.observe(this.shadowRoot?.host as Element);
-
-		this.executeCommand(findCommand('snake')!);
 	}
 
 	renderResponse(response: Response) {
