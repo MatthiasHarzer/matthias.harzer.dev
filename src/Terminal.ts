@@ -133,12 +133,12 @@ export class Terminal extends Component {
 
 	addResponse(response: Response) {
 		this.responses = [...this.responses, response];
-		requestAnimationFrame(() => {
+		setTimeout(() => {
 			this.historyElement.scrollTo({
 				top: this.historyElement.scrollHeight,
 				behavior: 'smooth',
 			});
-		});
+		}, 10); // Not sure why requestAnimationFrame doesn't work here
 	}
 
 	addCommandText(text: string) {
@@ -230,8 +230,6 @@ export class Terminal extends Component {
 	}
 
 	#makeRandomSuggestion() {
-		// Don't make a suggestion if we're currently waiting for a prompt response
-		if (this.#resolvePromptResponse) return;
 		const randomeCommand = helpCommands[Math.floor(Math.random() * helpCommands.length)];
 		if (!randomeCommand) return;
 		this.inputElement.suggestPlaceholder(randomeCommand.name);
@@ -245,6 +243,9 @@ export class Terminal extends Component {
 			this.inputElement.suggestPlaceholder('help');
 		}, 4000);
 		this.#suggestionTimeout = window.setInterval(() => {
+			// Don't make a suggestion if we're currently waiting for a prompt response
+			if (this.#resolvePromptResponse) return;
+			// Don't make a suggestion if input is disabled
 			if (this.inputDisabled) return;
 			this.#makeRandomSuggestion();
 		}, 15_000);
