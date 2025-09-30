@@ -134,7 +134,7 @@ export class TerminalResponseItem extends Component {
 				color: #ffc929;
 			}
 
-			&.ddd{
+			&.ddd {
 				color: #ff6f00;
 			}
 
