@@ -1,4 +1,4 @@
-import { css, type CSSResultGroup, LitElement, type PropertyValues } from 'lit';
+import { type CSSResultGroup, css, LitElement } from 'lit';
 import { type BaseObject, ReactiveObject } from '../services/reactive-object.js';
 
 const cssOverwrites = css`
@@ -79,8 +79,6 @@ export class Component extends LitElement {
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
-
-		this.resizeSubscribtion?.();
 	}
 }
 

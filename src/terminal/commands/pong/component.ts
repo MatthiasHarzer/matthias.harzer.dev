@@ -2,8 +2,8 @@ import { css, html, type PropertyValues, svg } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from '../../../litutil/Component.ts';
-import { ReactiveObject } from '../../../services/reactive-object.ts';
 import type { Unsubscribe } from '../../../services/reactive.ts';
+import { ReactiveObject } from '../../../services/reactive-object.ts';
 import type { Terminal } from '../../../Terminal.ts';
 import { type GameConfig, PongGame } from './game.ts';
 
