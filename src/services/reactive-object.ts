@@ -26,7 +26,7 @@ export class ReactiveObject<TObject extends BaseObject> extends Observable<TObje
 				return value;
 			},
 			set: (target: BaseObject, prop: string, value: unknown) => {
-				if (prop in target && typeof prop === 'string') {
+				if (prop in target) {
 					target[prop] = value;
 					this.notifySubscribers();
 					return true;
