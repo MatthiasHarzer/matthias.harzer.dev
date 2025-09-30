@@ -76,14 +76,18 @@ class SnakeGame {
 
 	placeNextFood() {
 		let newFoodPosition: Vector2;
+		const positions = [
+			...this.state.$.snake.map(part => part.position),
+			this.nextPosition(this.head), // Include next head position to avoid spawning food there
+		];
 		do {
 			newFoodPosition = {
 				x: Math.floor(Math.random() * this.config.$.blocksWidth),
 				y: Math.floor(Math.random() * this.config.$.blocksHeight),
 			};
 		} while (
-			this.state.$.snake.some(
-				part => part.position.x === newFoodPosition.x && part.position.y === newFoodPosition.y,
+			positions.some(
+				position => position.x === newFoodPosition.x && position.y === newFoodPosition.y,
 			)
 		);
 		this.state.$.food = newFoodPosition;
@@ -197,6 +201,9 @@ class SnakeGame {
 
 		this.applyDirection(this.nextDirection);
 		this.nextDirection = null;
+		this.checkCollisions();
+
+		if (this.state.$.phase !== 'running') return; // Exit if game over due to collision
 
 		// Move body parts
 		for (let i = this.state.$.snake.length - 1; i > 0; i--) {
@@ -205,7 +212,6 @@ class SnakeGame {
 			this.state.$.snake[i].direction = previousPart.direction;
 		}
 		this.movePart(this.head);
-		this.checkCollisions();
 	}
 
 	setup() {
@@ -247,6 +253,7 @@ class SnakeGame {
 				this.resetSnake();
 				this.state.$.phase = 'running';
 				this.state.$.score = 0;
+				this.nextDirection = null;
 				this.placeNextFood();
 				break;
 		}

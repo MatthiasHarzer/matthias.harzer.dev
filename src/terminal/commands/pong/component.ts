@@ -63,15 +63,15 @@ class PongComponent extends Component {
 				align-items: center;
 				gap: 8px;
 			}
-		}
 
-		.key {
-			min-width: 25px;
-			height: 25px;
-			display: inline-flex;
-			justify-content: center;
-			align-items: center;
-			padding: 0 4px;
+			.key {
+				min-width: 25px;
+				height: 25px;
+				display: inline-flex;
+				justify-content: center;
+				align-items: center;
+				padding: 0 4px;
+			}
 		}
 	`;
 
@@ -221,7 +221,6 @@ class PongComponent extends Component {
 					<mh-pixel-border>
 						<span class="key">↓</span>
 					</mh-pixel-border>
-					to move
 				</div>
 
 				<div class="group">

@@ -23,35 +23,77 @@ class SnakeComponent extends Component {
 			position: relative;
 		}
 
-		.tile {
-			&.dark {
-				fill: rgba(255, 255, 255, 0.05);
+		.overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			color: white;
+			font-size: 20px;
+			pointer-events: none;
+			text-align: center;
+		}
+
+		.you-hint {
+			fill: currentColor;
+		}
+
+		.field {
+			.tile {
+				&.dark {
+					fill: rgba(255, 255, 255, 0.05);
+				}
+
+				&.light {
+					fill: rgba(255, 255, 255, 0.1);
+				}
 			}
 
-			&.light {
-				fill: rgba(255, 255, 255, 0.1);
+			.snake-part {
+				stroke: #333;
+
+				&.head {
+					fill: limegreen;
+				}
+
+				&.body {
+					fill: green;
+				}
+
+				&.tail {
+					fill: darkgreen;
+				}
+			}
+
+			.food {
+				fill: red;
+				stroke: darkred;
 			}
 		}
 
-		.snake-part {
-			stroke: #333;
+		.controls {
+			margin-bottom: 5px;
+			display: flex;
+			gap: 20px;
 
-			&.head {
-				fill: limegreen;
+			.group {
+				display: flex;
+				align-items: center;
+				gap: 8px;
 			}
 
-			&.body {
-				fill: green;
+			.key {
+				min-width: 25px;
+				height: 25px;
+				display: inline-flex;
+				justify-content: center;
+				align-items: center;
+				padding: 0 4px;
 			}
-
-			&.tail {
-				fill: darkgreen;
-			}
-		}
-
-		.food {
-			fill: red;
-			stroke: darkred;
 		}
 	`;
 
@@ -154,6 +196,76 @@ class SnakeComponent extends Component {
 		this.subscriptions = [];
 	}
 
+	renderControls() {
+		return html`
+			<div class="controls">
+				<div class="group">
+					Controls:
+					<mh-pixel-border>
+						<span class="key">W</span>
+					</mh-pixel-border>
+					<mh-pixel-border>
+						<span class="key">S</span>
+					</mh-pixel-border>
+					<mh-pixel-border>
+						<span class="key">A</span>
+					</mh-pixel-border>
+					<mh-pixel-border>
+						<span class="key">D</span>
+					</mh-pixel-border> /
+					<mh-pixel-border>
+						<span class="key">↑</span>
+					</mh-pixel-border>
+					<mh-pixel-border>
+						<span class="key">↓</span>
+					</mh-pixel-border>
+					<mh-pixel-border>
+						<span class="key">←</span>
+					</mh-pixel-border>
+					<mh-pixel-border>
+						<span class="key">→</span>
+					</mh-pixel-border>
+				</div>
+
+				<div class="group">
+					Exit:
+					<mh-pixel-border>
+						<span class="key">ESC</span>
+					</mh-pixel-border>
+				</div>
+				<div class="group">
+					Score: ${this.game.state.$.score}
+				</div>
+			</div>
+		`;
+	}
+
+	renderOverlay() {
+		const state = this.game.state.$;
+		switch (state?.phase) {
+			case 'initial': {
+				return html`
+					<div class="start-hint">
+						<span>Press Space to start the game</span>
+						<br />
+						Highscore: ${this.highscore}
+					</div>`;
+			}
+			case 'game-over':
+			case 'stopped': {
+				return html`
+					<div>
+						<span class="game-over">Game Over!</span>
+						<br />
+						Score: ${state.score} | Highscore: ${this.highscore}
+						<br />
+						${state.phase === 'game-over' ? 'Press ESC to exit or Space to restart' : ''}
+					</div>
+				`;
+			}
+		}
+	}
+
 	renderCheckerboard() {
 		const rects = [] as unknown[];
 		for (let y = 0; y < this.config.$.blocksHeight; y++) {
@@ -171,6 +283,17 @@ class SnakeComponent extends Component {
 		return svg`${rects}`;
 	}
 
+	renderYouHind() {
+		const state = this.game.state.$;
+		if (state.phase !== 'initial') return '';
+
+		return svg`<text
+			x="${(this.game.head.position.x + 1) * this.config.$.blockSize + this.config.$.blockSize / 2}"
+			y="${(this.game.head.position.y + 1) * this.config.$.blockSize}"
+			class="you-hint"
+		><- You</text>`;
+	}
+
 	renderGame() {
 		const state = this.game.state.$;
 		const config = this.game.config.$;
@@ -178,6 +301,7 @@ class SnakeComponent extends Component {
 		return html`
 			<svg
 				width="100%" height="100%"
+				class="field"
 			>
 				${this.renderCheckerboard()}
 				${svg`
@@ -190,6 +314,7 @@ class SnakeComponent extends Component {
 						class="snake-part ${part.type}"
 					></rect>`,
 					)}
+					${this.renderYouHind()}
 				<rect
 					x="${state.food.x * config.blockSize}"
 					y="${state.food.y * config.blockSize}"
@@ -213,9 +338,12 @@ class SnakeComponent extends Component {
 					--width: ${this.width}px;
 				}
 			</style>
-			<div>Score: ${this.game.state.$.score}</div>
+			${this.renderControls()}
 			<div class="snake">
 				${this.renderGame()}
+				<div class="overlay">
+					${this.renderOverlay()}
+				</div>
 			</div>
 		`;
 	}

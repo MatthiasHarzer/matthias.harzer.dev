@@ -133,12 +133,12 @@ export class Terminal extends Component {
 
 	addResponse(response: Response) {
 		this.responses = [...this.responses, response];
-		requestAnimationFrame(() => {
+		setTimeout(() => {
 			this.historyElement.scrollTo({
 				top: this.historyElement.scrollHeight,
 				behavior: 'smooth',
 			});
-		});
+		}, 10); // Not sure why requestAnimationFrame doesn't work here
 	}
 
 	addCommandText(text: string) {
