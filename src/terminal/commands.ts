@@ -7,7 +7,7 @@ import github from './commands/github.ts';
 import help from './commands/help.ts';
 import mh from './commands/mh.ts';
 import pong from './commands/pong/pong.ts';
-import snake from './commands/snake.ts';
+import snake from './commands/snake/snake.ts';
 import tech from './commands/tech.ts';
 import who from './commands/who.ts';
 import whoami from './commands/whoami.ts';

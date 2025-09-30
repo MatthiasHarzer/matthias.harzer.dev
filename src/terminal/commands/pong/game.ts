@@ -1,17 +1,13 @@
 import { keyListener } from '../../../services/hotkey-listener.ts';
 import { random } from '../../../services/random.ts';
+import { ReactiveObject } from '../../../services/reactive-object.ts';
 import {
 	Observable,
 	type ReadOnlyObservable,
 	type Unsubscribe,
 } from '../../../services/reactive.ts';
-import { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { Vector2 } from '../../games/components.ts';
 import { type GameStrategy, LocalTwoPlayerStrategy, SinglePlayerStrategy } from './strategies.ts';
-
-interface Vector2 {
-	x: number;
-	y: number;
-}
 
 type Phase = 'initial' | 'running' | 'point-scored' | 'game-over' | 'stopped';
 
@@ -210,6 +206,7 @@ class PongGame {
 		for (const unsubscribe of this.subscriptions) {
 			unsubscribe();
 		}
+		this.state.disconnect();
 	}
 }
 

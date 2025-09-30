@@ -2,8 +2,8 @@ import { css, html, type PropertyValues, svg } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from '../../../litutil/Component.ts';
-import type { Unsubscribe } from '../../../services/reactive.ts';
 import { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { Unsubscribe } from '../../../services/reactive.ts';
 import type { Terminal } from '../../../Terminal.ts';
 import { type GameConfig, PongGame } from './game.ts';
 
@@ -75,27 +75,25 @@ class PongComponent extends Component {
 		}
 	`;
 
-	#localStorageKey: string = 'terminal-pong-highscore';
-
+	localStorageKey: string = 'terminal-pong-highscore';
 	gameConfig: ReactiveObject<GameConfig>;
 	pongGame: PongGame | null = null;
+	subscriptions: Unsubscribe[] = [];
 
 	@property({ attribute: false }) terminal: Terminal | null = null;
 	@property({ type: Boolean, attribute: 'enable-2nd-player' }) enable2ndPlayer = false;
 
 	@state()
 	get highscore() {
-		const stored = localStorage.getItem(this.#localStorageKey);
+		const stored = localStorage.getItem(this.localStorageKey);
 		if (stored) {
 			return parseInt(stored, 10);
 		}
 		return 0;
 	}
 	set highscore(value: number) {
-		localStorage.setItem(this.#localStorageKey, value.toString());
+		localStorage.setItem(this.localStorageKey, value.toString());
 	}
-
-	#subscriptions: Unsubscribe[] = [];
 
 	get has2ndPlayer() {
 		return this.enable2ndPlayer;
@@ -131,9 +129,9 @@ class PongComponent extends Component {
 		this.pongGame.config.subscribeHost(this, false);
 		this.pongGame.setup();
 
-		this.#subscriptions.push(() => resizeObserver.disconnect());
+		this.subscriptions.push(() => resizeObserver.disconnect());
 
-		this.#subscriptions.push(
+		this.subscriptions.push(
 			this.pongGame.phase.subscribe(phase => {
 				switch (phase) {
 					case 'stopped':
@@ -159,11 +157,11 @@ class PongComponent extends Component {
 	}
 
 	unsubscribeAll() {
-		for (const unsub of this.#subscriptions) {
+		for (const unsub of this.subscriptions) {
 			unsub();
 		}
 		this.pongGame?.dispose();
-		this.#subscriptions = [];
+		this.subscriptions = [];
 	}
 
 	get game() {

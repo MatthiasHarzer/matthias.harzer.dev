@@ -2,6 +2,7 @@ import { Observable, type Subscriber, type Unsubscribe } from './reactive.ts';
 
 interface HotkeyListener {
 	on(keys: string, subscriber: Subscriber<void>): Unsubscribe;
+	onOneOf(keys: string[], subscriber: Subscriber<void>): Unsubscribe;
 	isPressed(key: string): boolean;
 }
 
@@ -35,6 +36,20 @@ class Listener extends Observable<Set<string>> {
 			}
 			subscriber();
 		}, true);
+	}
+
+	onOneOf(keys: string[], subscriber: Subscriber<void>) {
+		const subscribers: Unsubscribe[] = [];
+
+		for (const key of keys) {
+			subscribers.push(this.on(key, subscriber));
+		}
+
+		return () => {
+			for (const unsubscribe of subscribers) {
+				unsubscribe();
+			}
+		};
 	}
 
 	isPressed(key: string) {
