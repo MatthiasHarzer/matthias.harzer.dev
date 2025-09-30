@@ -152,6 +152,9 @@ class SnakeComponent extends Component {
 		}
 
 		this.snakeGame = new SnakeGame(this.config);
+		this.snakeGame.state.subscribeHost(this, false);
+		this.snakeGame.config.subscribeHost(this, false);
+		this.snakeGame.setup();
 
 		const observer = new ResizeObserver(() => {
 			this.config.$.blocksWidth = this.blocksWidth;
@@ -159,9 +162,6 @@ class SnakeComponent extends Component {
 		observer.observe(this.terminal);
 
 		this.subscriptions.push(() => observer.disconnect());
-
-		this.snakeGame.state.subscribeHost(this, false);
-		this.snakeGame.config.subscribeHost(this, false);
 
 		this.subscriptions.push(
 			this.snakeGame.phase.subscribe(phase => {

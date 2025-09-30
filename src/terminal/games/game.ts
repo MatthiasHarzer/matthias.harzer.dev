@@ -10,6 +10,7 @@ abstract class TerminalGame<TState extends GameState<TPhase>, TPhase extends str
 	protected animationFrameId: number | null = null;
 	protected _phase: Observable<TPhase>;
 	readonly state: ReactiveObject<TState>;
+	readonly baseFps: number = 60;
 
 	get phase(): ReadOnlyObservable<TPhase> {
 		return this._phase;
@@ -24,19 +25,17 @@ abstract class TerminalGame<TState extends GameState<TPhase>, TPhase extends str
 		this.state.subscribe(() => {
 			this._phase.set(this.state.$.phase);
 		}, false);
-
-		this.setup();
 	}
 
 	abstract tick(deltaTime: number): void;
 
-	protected setup(): void {
+	setup(): void {
 		let lastTime: number | null = null;
 
 		const frame = (time: number) => {
 			if (lastTime !== null) {
 				const deltaTime = time - lastTime;
-				this.tick(deltaTime);
+				this.tick(deltaTime / (1000 / this.baseFps));
 			}
 			lastTime = time;
 			this.animationFrameId = requestAnimationFrame(frame);

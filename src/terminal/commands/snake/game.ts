@@ -49,7 +49,7 @@ class SnakeGame extends TerminalGame<SnakeGameState, Phase> {
 	}
 
 	get interval() {
-		return 1000 / this.config.$.fps;
+		return this.baseFps / this.config.$.fps;
 	}
 
 	constructor(config: ReactiveObject<SnakeGameConfig>) {
