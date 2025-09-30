@@ -1,7 +1,11 @@
 import { keyListener } from '../../../services/hotkey-listener.ts';
 import { random } from '../../../services/random.ts';
-import { Observable, type ReadOnlyObservable } from '../../../services/reactive.ts';
 import { ReactiveObject } from '../../../services/reactive-object.ts';
+import {
+	Observable,
+	type ReadOnlyObservable,
+	type Unsubscribe,
+} from '../../../services/reactive.ts';
 import { type GameStrategy, LocalTwoPlayerStrategy, SinglePlayerStrategy } from './strategies.ts';
 
 interface Vector2 {
@@ -42,6 +46,7 @@ class PongGame {
 	readonly strategy: GameStrategy;
 	readonly mode: Mode;
 	private readonly _phase = new Observable<Phase>('initial');
+	private readonly subscriptions: Unsubscribe[] = [];
 
 	get phase(): ReadOnlyObservable<Phase> {
 		return this._phase;
@@ -63,12 +68,16 @@ class PongGame {
 			this._phase.set(this.state.$.phase);
 		}, false);
 
-		keyListener.on(' ', () => {
-			this.strategy.continue();
-		});
-		keyListener.on('Escape', () => {
-			this.state.$.phase = 'stopped';
-		});
+		this.subscriptions.push(
+			keyListener.on(' ', () => {
+				this.strategy.continue();
+			}),
+		);
+		this.subscriptions.push(
+			keyListener.on('Escape', () => {
+				this.state.$.phase = 'stopped';
+			}),
+		);
 
 		switch (mode) {
 			case 'single-player':
@@ -76,6 +85,9 @@ class PongGame {
 				break;
 			case 'two-player':
 				this.strategy = new LocalTwoPlayerStrategy(this);
+				break;
+			default:
+				throw new Error(`Unknown mode "${mode}"`);
 		}
 	}
 
@@ -192,6 +204,12 @@ class PongGame {
 
 	isOutOfBoundsRight() {
 		return this.state.$.ball.position.x - this.config.$.ball.size / 2 > this.config.$.field.width;
+	}
+
+	dispose() {
+		for (const unsubscribe of this.subscriptions) {
+			unsubscribe();
+		}
 	}
 }
 

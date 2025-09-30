@@ -4,7 +4,6 @@ import { state } from 'lit/decorators/state.js';
 import { Component } from '../../../litutil/Component.ts';
 import { ReactiveObject } from '../../../services/reactive-object.ts';
 import type { Unsubscribe } from '../../../services/reactive.ts';
-import { observeSize } from '../../../services/size.ts';
 import type { Terminal } from '../../../Terminal.ts';
 import { type GameConfig, PongGame } from './game.ts';
 
@@ -113,10 +112,6 @@ class PongComponent extends Component {
 		});
 	}
 
-	connectedCallback(): void {
-		super.connectedCallback();
-	}
-
 	firstUpdated(changedProperties: PropertyValues) {
 		super.firstUpdated(changedProperties);
 
@@ -124,7 +119,10 @@ class PongComponent extends Component {
 			throw new Error('Terminal not set');
 		}
 
-		const resize = observeSize(this.terminal);
+		const resizeObserver = new ResizeObserver(() => {
+			this.gameConfig.$.field.width = this.rect.width;
+		});
+		resizeObserver.observe(this.terminal);
 
 		const mode = this.has2ndPlayer ? 'two-player' : 'single-player';
 
@@ -133,11 +131,7 @@ class PongComponent extends Component {
 		this.pongGame.config.subscribeHost(this, false);
 		this.pongGame.setup();
 
-		this.#subscriptions.push(
-			resize.subscribe(() => {
-				this.gameConfig.$.field.width = this.rect.width;
-			}, true),
-		);
+		this.#subscriptions.push(() => resizeObserver.disconnect());
 
 		this.#subscriptions.push(
 			this.pongGame.phase.subscribe(phase => {
@@ -168,6 +162,7 @@ class PongComponent extends Component {
 		for (const unsub of this.#subscriptions) {
 			unsub();
 		}
+		this.game.dispose();
 		this.#subscriptions = [];
 	}
 
