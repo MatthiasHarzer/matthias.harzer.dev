@@ -5,3 +5,4 @@ import './TerminalInput.ts';
 import './TerminalResponseItem.ts';
 import './TerminalSection.ts';
 import './components/PixelBorder.ts';
+import './terminal/commands/pong/component.ts';

@@ -53,6 +53,10 @@ export class Component extends LitElement {
 		Component._styles = styles;
 	}
 
+	get rect() {
+		return this.getBoundingClientRect();
+	}
+
 	sleep(ms: number) {
 		return new Promise(resolve => setTimeout(resolve, ms));
 	}
