@@ -2,8 +2,8 @@ import { css, html, type PropertyValues, svg } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { state } from 'lit/decorators/state.js';
 import { Component } from '../../../litutil/Component.ts';
-import type { Unsubscribe } from '../../../services/reactive.ts';
 import { ReactiveObject } from '../../../services/reactive-object.ts';
+import type { Unsubscribe } from '../../../services/reactive.ts';
 import type { Terminal } from '../../../Terminal.ts';
 import { SnakeGame, type SnakeGameConfig } from './game.ts';
 
@@ -283,15 +283,14 @@ class SnakeComponent extends Component {
 		return svg`${rects}`;
 	}
 
-	renderYouHind() {
-		const state = this.game.state.$;
-		if (state.phase !== 'initial') return '';
+	renderYouHint() {
+		if (this.game.state.$.phase !== 'initial') return '';
 
 		return svg`<text
 			x="${(this.game.head.position.x + 1) * this.config.$.blockSize + this.config.$.blockSize / 2}"
 			y="${(this.game.head.position.y + 1) * this.config.$.blockSize}"
 			class="you-hint"
-		><- You</text>`;
+		>&lt;- You</text>`;
 	}
 
 	renderGame() {
@@ -314,7 +313,7 @@ class SnakeComponent extends Component {
 						class="snake-part ${part.type}"
 					></rect>`,
 					)}
-					${this.renderYouHind()}
+					${this.renderYouHint()}
 				<rect
 					x="${state.food.x * config.blockSize}"
 					y="${state.food.y * config.blockSize}"
