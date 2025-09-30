@@ -74,10 +74,10 @@ class SinglePlayerStrategy extends GameStrategy {
 		}
 
 		const deltaY = targetY - this.state.$.playerRight.position.y;
-		const movingTowardsAiPlayer = this.state.$.ball.velocity.x > 0;
+		const movingTowardsRightPlayer = this.state.$.ball.velocity.x > 0;
 
 		// move the paddle smoothly towards the target position. If the ball is moving away, center the paddle.
-		if (movingTowardsAiPlayer) {
+		if (movingTowardsRightPlayer) {
 			const moveAmount =
 				Math.sign(deltaY) * Math.min(Math.abs(deltaY), this.config.$.paddle.speed * deltaTime);
 			this.state.$.playerRight.position.y += moveAmount;
