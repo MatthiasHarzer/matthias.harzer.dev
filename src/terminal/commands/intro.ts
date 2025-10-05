@@ -12,7 +12,7 @@ const logo = String.raw`
 const logoLines = logo
 	.split('\n')
 	.filter(line => line.trim() !== '')
-	.map(line => line.replaceAll(' ', '\u00A0'))
+	.map(line => line.replace(/ /g, '\u00A0'))
 	.flatMap(line => [text(line), linebreak()]);
 
 const intro: Command = {
