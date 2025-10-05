@@ -3,7 +3,7 @@ import { type Command, component, indentation, linebreak, text } from '../../ter
 
 const snake: Command = {
 	name: 'snake',
-	description: 'Play a game of Snake',
+	description: 'Play a game of snake',
 	prepare(terminal) {
 		return () => {
 			terminal.disableInput();

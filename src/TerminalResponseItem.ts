@@ -158,9 +158,6 @@ export class TerminalResponseItem extends Component {
   			font-weight: lighter;
 			}
 
-			&.command {
-				color: #8be9fd;
-			}
 
 			&.config-key {
 				color: #ff79c6;
