@@ -6,7 +6,7 @@ import { Component } from './litutil/Component.ts';
 import { configService } from './services/config.ts';
 import { parseCommand } from './services/parse-command.ts';
 import type { TerminalInput } from './TerminalInput.ts';
-import { commandNotFound, findCommand, helpCommands } from './terminal/commands.ts';
+import { commandNotFound, commands, findCommand, helpCommands } from './terminal/commands.ts';
 import type { Command, TerminalResponse } from './terminal/terminal.ts';
 
 interface CommandResponse {
@@ -110,6 +110,7 @@ export class Terminal extends Component {
 	#suggestionTimeout: number | null = null;
 	#resolvePromptResponse: ((value: string) => void) | null = null;
 	#resizeObserver: ResizeObserver | null = null;
+	#startupCommand: Command | null = commands.intro;
 
 	@state() inputDisabled: boolean = false;
 	@state() hidden: boolean = false;
@@ -269,6 +270,10 @@ export class Terminal extends Component {
 			this.terminalWidth = entries[0].contentRect.width;
 		});
 		this.#resizeObserver.observe(this.shadowRoot?.host as Element);
+
+		if (this.#startupCommand) {
+			this.executeCommand(this.#startupCommand);
+		}
 	}
 
 	renderResponse(response: Response) {

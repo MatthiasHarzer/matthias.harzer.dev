@@ -5,6 +5,7 @@ import contact from './commands/contact.ts';
 import exit from './commands/exit.ts';
 import github from './commands/github.ts';
 import help from './commands/help.ts';
+import intro from './commands/intro.ts';
 import mh from './commands/mh.ts';
 import pong from './commands/pong/pong.ts';
 import snake from './commands/snake/snake.ts';
@@ -14,7 +15,7 @@ import whoami from './commands/whoami.ts';
 import { type Command, highlight, text } from './terminal.ts';
 
 // biome-ignore format: Force vertical list for easier reading / reordering
-const commands = [
+const commands = {
 	who,
 	tech,
 	career,
@@ -28,13 +29,16 @@ const commands = [
 	mh,
 	pong,
 	snake,
-];
+	intro,
+} as const;
 
-const visibleCommands = commands.filter(cmd => !cmd.isHidden);
-const helpCommands = commands.filter(cmd => !cmd.noHelp);
+const allCommands: Command[] = Object.values(commands);
+
+const visibleCommands = allCommands.filter(cmd => !cmd.isHidden);
+const helpCommands = allCommands.filter(cmd => !cmd.noHelp);
 
 const findCommand = (name: string): Command | undefined => {
-	return commands.find(cmd => cmd.name.toLowerCase() === name.toLowerCase());
+	return allCommands.find(cmd => cmd.name.toLowerCase() === name.toLowerCase());
 };
 
 const commandNotFound = (command: string) => [
@@ -42,4 +46,4 @@ const commandNotFound = (command: string) => [
 	text(` ${command}: command not found.`),
 ];
 
-export { commandNotFound, findCommand, helpCommands, visibleCommands };
+export { commandNotFound, findCommand, helpCommands, visibleCommands, commands };
