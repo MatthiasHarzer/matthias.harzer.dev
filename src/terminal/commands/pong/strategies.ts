@@ -43,6 +43,8 @@ abstract class GameStrategy {
 }
 
 class SinglePlayerStrategy extends GameStrategy {
+	protected _lastReflectX: 'left' | 'right' | null = null;
+
 	resetBall() {
 		this.state.$.ball.position = {
 			x: this.config.$.field.width / 2,
@@ -109,14 +111,36 @@ class SinglePlayerStrategy extends GameStrategy {
 		}
 
 		if (this.game.hasHitRightPaddle() || this.game.isOutOfBoundsRight()) {
-			this.game.reflectBallX();
+			this.reflectBallX();
 			return;
 		}
 
 		if (this.game.hasHitLeftPaddle()) {
-			this.state.$.playerLeft.score++;
-			this.game.reflectBallX();
+			const reflected = this.reflectBallX();
+			if (reflected) {
+				this.state.$.playerLeft.score++;
+			}
 		}
+	}
+
+	reflectBallX(): boolean {
+		// Prevent multiple reflections on the same paddle hit
+		if (this._lastReflectX === 'left' && this.game.hasHitLeftPaddle()) {
+			return false;
+		} else if (this._lastReflectX === 'right' && this.game.hasHitRightPaddle()) {
+			return false;
+		}
+
+		if (this.game.hasHitLeftPaddle()) {
+			this._lastReflectX = 'left';
+		} else if (this.game.hasHitRightPaddle()) {
+			this._lastReflectX = 'right';
+		} else {
+			this._lastReflectX = null;
+		}
+
+		this.game.reflectBallX();
+		return true;
 	}
 
 	tick(deltaTime: number) {
@@ -141,6 +165,7 @@ class SinglePlayerStrategy extends GameStrategy {
 	}
 
 	continue(): void {
+		this._lastReflectX = null;
 		switch (this.state.$.phase) {
 			case 'initial':
 			case 'game-over':
