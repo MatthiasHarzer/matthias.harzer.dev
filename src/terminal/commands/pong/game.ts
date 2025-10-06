@@ -1,4 +1,4 @@
-import { keyListener } from '../../../services/hotkey-listener.ts';
+import { keylistener } from '../../../services/keylistener.ts';
 import { random } from '../../../services/random.ts';
 import type { ReactiveObject } from '../../../services/reactive-object.ts';
 import type { Vector2 } from '../../games/components.ts';
@@ -54,12 +54,12 @@ class PongGame extends TerminalGame<GameState, Phase> {
 		}, false);
 
 		this.subscriptions.push(
-			keyListener.on(' ', () => {
+			keylistener.on(' ', () => {
 				this.strategy.continue();
 			}),
 		);
 		this.subscriptions.push(
-			keyListener.on('Escape', () => {
+			keylistener.on('Escape', () => {
 				this.state.$.phase = 'stopped';
 			}),
 		);

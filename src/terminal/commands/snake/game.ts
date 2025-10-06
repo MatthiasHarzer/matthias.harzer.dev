@@ -1,4 +1,4 @@
-import { keyListener } from '../../../services/hotkey-listener.ts';
+import { keylistener } from '../../../services/keylistener.ts';
 import type { ReadOnlyObservable } from '../../../services/reactive.ts';
 import type { ReactiveObject } from '../../../services/reactive-object.ts';
 import type { Vector2 } from '../../games/components.ts';
@@ -62,8 +62,8 @@ class SnakeGame extends TerminalGame<SnakeGameState, Phase> {
 		this.config = config;
 		this.resetSnake();
 
-		this.subscriptions.push(keyListener.on(' ', () => this.continue()));
-		this.subscriptions.push(keyListener.on('Escape', () => this.exit()));
+		this.subscriptions.push(keylistener.on(' ', () => this.continue()));
+		this.subscriptions.push(keylistener.on('Escape', () => this.exit()));
 		this.subscriptions.push(
 			this.state.subscribe(() => {
 				this._phase.set(this.state.$.phase);
@@ -129,13 +129,13 @@ class SnakeGame extends TerminalGame<SnakeGameState, Phase> {
 	}
 
 	handleInput() {
-		if (keyListener.isPressed('ArrowUp') || keyListener.isPressed('w')) {
+		if (keylistener.isPressed('ArrowUp') || keylistener.isPressed('w')) {
 			this.changeDirection('up');
-		} else if (keyListener.isPressed('ArrowDown') || keyListener.isPressed('s')) {
+		} else if (keylistener.isPressed('ArrowDown') || keylistener.isPressed('s')) {
 			this.changeDirection('down');
-		} else if (keyListener.isPressed('ArrowLeft') || keyListener.isPressed('a')) {
+		} else if (keylistener.isPressed('ArrowLeft') || keylistener.isPressed('a')) {
 			this.changeDirection('left');
-		} else if (keyListener.isPressed('ArrowRight') || keyListener.isPressed('d')) {
+		} else if (keylistener.isPressed('ArrowRight') || keylistener.isPressed('d')) {
 			this.changeDirection('right');
 		}
 	}

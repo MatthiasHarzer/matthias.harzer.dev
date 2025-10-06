@@ -263,44 +263,13 @@ export class TerminalResponseItem extends Component {
 
 	connectedCallback(): void {
 		super.connectedCallback();
-
-		this.#placeholderRender = this.#renderResponse(this.result);
+		this.#placeholderRender = this.renderResponse(this.result);
 
 		if (this.typewriterCharsPerSecond <= 0) {
 			this._displayedContent = this.#placeholderRender;
 			return;
 		}
 		this.runTypeWriterEffect();
-	}
-
-	renderFinishedParts(lastPartIndex: number) {
-		const renderedParts: TemplateResult[] = [];
-		for (let i = 0; i < lastPartIndex; i++) {
-			const part = this.result[i];
-			const [renderedPart] = this.#renderResponsePart(part, -1);
-			renderedParts.push(renderedPart);
-		}
-
-		return renderedParts;
-	}
-
-	renderUnfinishedPart(
-		lastPartIndex: number,
-		lastPartCharIndex: number,
-		charsLeftToAdd: number,
-	): [TemplateResult | null, number] {
-		const part = this.result[lastPartIndex];
-		if (!part) {
-			return [null, 0];
-		}
-
-		const [renderedPart, partLength] = this.#renderResponsePart(
-			part,
-			lastPartCharIndex + charsLeftToAdd,
-		);
-		const remainderRenderedChars = partLength - lastPartCharIndex;
-
-		return [renderedPart, remainderRenderedChars];
 	}
 
 	runTypeWriterEffect() {
@@ -328,7 +297,7 @@ export class TerminalResponseItem extends Component {
 			let remainingCharsToRender = numberOfCharsToRender;
 			for (let i = 0; i < this.result.length; i++) {
 				const part = this.result[i];
-				const [renderedPart, partLength] = this.#renderResponsePart(part, remainingCharsToRender);
+				const [renderedPart, partLength] = this.renderResponsePart(part, remainingCharsToRender);
 				renderedParts.push(renderedPart);
 
 				remainingCharsToRender -= partLength;
@@ -350,15 +319,12 @@ export class TerminalResponseItem extends Component {
 		requestAnimationFrame(frame);
 	}
 
-	#renderRepsonseParts(
-		parts: TerminalItem[],
-		maxCharsToRender: number,
-	): [TemplateResult[], number] {
+	renderResponseParts(parts: TerminalItem[], maxCharsToRender: number): [TemplateResult[], number] {
 		const renderedParts: TemplateResult[] = [];
 		let charsRendered = 0;
 		let totalLength = 0;
 		for (const part of parts) {
-			const [renderedPart, partLength] = this.#renderResponsePart(
+			const [renderedPart, partLength] = this.renderResponsePart(
 				part,
 				maxCharsToRender === -1 ? -1 : maxCharsToRender - charsRendered,
 			);
@@ -372,7 +338,7 @@ export class TerminalResponseItem extends Component {
 		return [renderedParts, totalLength];
 	}
 
-	#renderResponsePart(part: TerminalItem, maxCharsToRender: number): [TemplateResult, number] {
+	renderResponsePart(part: TerminalItem, maxCharsToRender: number): [TemplateResult, number] {
 		switch (part.type) {
 			case 'text':
 				return [html`${cutText(part.text, maxCharsToRender)}`, part.text.length];
@@ -395,24 +361,15 @@ export class TerminalResponseItem extends Component {
 				];
 			}
 			case 'paragraph': {
-				const [renderedParts, totalLength] = this.#renderRepsonseParts(
-					part.parts,
-					maxCharsToRender,
-				);
+				const [renderedParts, totalLength] = this.renderResponseParts(part.parts, maxCharsToRender);
 				return [html`<p>${renderedParts}</p>`, totalLength];
 			}
 			case 'indentation': {
-				const [renderedParts, totalLength] = this.#renderRepsonseParts(
-					part.parts,
-					maxCharsToRender,
-				);
+				const [renderedParts, totalLength] = this.renderResponseParts(part.parts, maxCharsToRender);
 				return [html`<div class="indentation l-${part.level}">${renderedParts}</div>`, totalLength];
 			}
 			case 'hover-highlight-block': {
-				const [renderedParts, totalLength] = this.#renderRepsonseParts(
-					part.parts,
-					maxCharsToRender,
-				);
+				const [renderedParts, totalLength] = this.renderResponseParts(part.parts, maxCharsToRender);
 				return [html`<div class="hover-highlight-block">${renderedParts}</div>`, totalLength];
 			}
 			case 'emoji': {
@@ -429,8 +386,8 @@ export class TerminalResponseItem extends Component {
 		}
 	}
 
-	#renderResponse(response: TerminalResponse) {
-		return response.map(part => this.#renderResponsePart(part, -1)[0]);
+	renderResponse(response: TerminalResponse) {
+		return response.map(part => this.renderResponsePart(part, -1)[0]);
 	}
 
 	render() {
