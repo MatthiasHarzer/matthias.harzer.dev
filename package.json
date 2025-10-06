@@ -2,7 +2,7 @@
 	"name": "matthias.harzer.dev",
 	"version": "1.0.0",
 	"devDependencies": {
-		"@biomejs/biome": "2.2.4",
+		"@biomejs/biome": "2.2.5",
 		"@lit/localize": "0.12.2",
 		"@lit/localize-tools": "0.8.0",
 		"@lit/task": "1.0.3",
