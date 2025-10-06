@@ -37,8 +37,8 @@ const allCommands: Command[] = Object.values(commands);
 const visibleCommands = allCommands.filter(cmd => !cmd.isHidden);
 const helpCommands = allCommands.filter(cmd => !cmd.noHelp);
 
-const findCommand = (name: string): Command | undefined => {
-	return allCommands.find(cmd => cmd.name.toLowerCase() === name.toLowerCase());
+const findCommand = (name: string): Command | null => {
+	return allCommands.find(cmd => cmd.name.toLowerCase() === name.toLowerCase()) ?? null;
 };
 
 const commandNotFound = (command: string) => [

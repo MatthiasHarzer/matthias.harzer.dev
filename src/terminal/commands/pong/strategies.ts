@@ -1,4 +1,4 @@
-import { keyListener } from '../../../services/hotkey-listener.ts';
+import { keylistener } from '../../../services/keylistener.ts';
 import type { PongGame } from './game.ts';
 
 abstract class GameStrategy {
@@ -154,10 +154,10 @@ class SinglePlayerStrategy extends GameStrategy {
 
 		this.adjustAIPaddle(deltaTime);
 
-		if (keyListener.isPressed('w') || keyListener.isPressed('ArrowUp')) {
+		if (keylistener.isPressed('w') || keylistener.isPressed('ArrowUp')) {
 			this.game.paddleLeftYUp(deltaTime);
 		}
-		if (keyListener.isPressed('s') || keyListener.isPressed('ArrowDown')) {
+		if (keylistener.isPressed('s') || keylistener.isPressed('ArrowDown')) {
 			this.game.paddleLeftYDown(deltaTime);
 		}
 
@@ -240,16 +240,16 @@ class LocalTwoPlayerStrategy extends GameStrategy {
 		this.game.moveBall(deltaTime);
 		this.game.tickBallYReflection();
 
-		if (keyListener.isPressed('w')) {
+		if (keylistener.isPressed('w')) {
 			this.game.paddleLeftYUp(deltaTime);
 		}
-		if (keyListener.isPressed('s')) {
+		if (keylistener.isPressed('s')) {
 			this.game.paddleLeftYDown(deltaTime);
 		}
-		if (keyListener.isPressed('ArrowUp')) {
+		if (keylistener.isPressed('ArrowUp')) {
 			this.game.paddleRightYUp(deltaTime);
 		}
-		if (keyListener.isPressed('ArrowDown')) {
+		if (keylistener.isPressed('ArrowDown')) {
 			this.game.paddleRightYDown(deltaTime);
 		}
 
