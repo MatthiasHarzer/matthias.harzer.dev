@@ -2,6 +2,7 @@ import { css, html } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { createRef, type Ref, ref } from 'lit/directives/ref.js';
 import { Component } from './litutil/Component.ts';
+import { getSuggestions } from './terminal/suggestions.ts';
 
 export class TerminalInput extends Component {
 	static styles = css`
@@ -19,6 +20,8 @@ export class TerminalInput extends Component {
 	#inputRef: Ref<HTMLInputElement> = createRef();
 	#history: string[] = [];
 	#historyIndex = -1;
+	#suggestions: string[] = [];
+	#suggestionIndex = -1;
 
 	@property({ type: Boolean }) disabled = false;
 
@@ -41,9 +44,25 @@ export class TerminalInput extends Component {
 		this.#inputRef.value?.focus();
 	}
 
+	handleSuggestions() {
+		if (this.#suggestionIndex === -1) {
+			this.#suggestions = getSuggestions(this.value);
+		}
+		if (this.#suggestions.length === 0) {
+			return;
+		}
+		this.#suggestionIndex = (this.#suggestionIndex + 1) % this.#suggestions.length;
+		this.#input.value = this.#suggestions[this.#suggestionIndex];
+	}
+
 	#onKeydown(event: KeyboardEvent) {
 		if (this.disabled) return;
 		switch (event.key) {
+			case 'Tab': {
+				this.handleSuggestions();
+				event.preventDefault();
+				break;
+			}
 			case 'Enter': {
 				const value = this.#input.value.trim();
 				this.dispatch('submit', { value });
@@ -72,6 +91,10 @@ export class TerminalInput extends Component {
 					this.#input.value = '';
 				}
 				event.preventDefault();
+				break;
+			}
+			default: {
+				this.#suggestionIndex = -1;
 				break;
 			}
 		}
