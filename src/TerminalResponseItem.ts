@@ -319,7 +319,7 @@ export class TerminalResponseItem extends Component {
 		requestAnimationFrame(frame);
 	}
 
-	renderRepsonseParts(parts: TerminalItem[], maxCharsToRender: number): [TemplateResult[], number] {
+	renderResponseParts(parts: TerminalItem[], maxCharsToRender: number): [TemplateResult[], number] {
 		const renderedParts: TemplateResult[] = [];
 		let charsRendered = 0;
 		let totalLength = 0;
@@ -361,15 +361,15 @@ export class TerminalResponseItem extends Component {
 				];
 			}
 			case 'paragraph': {
-				const [renderedParts, totalLength] = this.renderRepsonseParts(part.parts, maxCharsToRender);
+				const [renderedParts, totalLength] = this.renderResponseParts(part.parts, maxCharsToRender);
 				return [html`<p>${renderedParts}</p>`, totalLength];
 			}
 			case 'indentation': {
-				const [renderedParts, totalLength] = this.renderRepsonseParts(part.parts, maxCharsToRender);
+				const [renderedParts, totalLength] = this.renderResponseParts(part.parts, maxCharsToRender);
 				return [html`<div class="indentation l-${part.level}">${renderedParts}</div>`, totalLength];
 			}
 			case 'hover-highlight-block': {
-				const [renderedParts, totalLength] = this.renderRepsonseParts(part.parts, maxCharsToRender);
+				const [renderedParts, totalLength] = this.renderResponseParts(part.parts, maxCharsToRender);
 				return [html`<div class="hover-highlight-block">${renderedParts}</div>`, totalLength];
 			}
 			case 'emoji': {
