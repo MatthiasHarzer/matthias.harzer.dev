@@ -169,8 +169,10 @@ class SinglePlayerStrategy extends GameStrategy {
 		switch (this.state.$.phase) {
 			case 'initial':
 			case 'game-over':
-				this.state.$.phase = 'running';
 				this.resetBall();
+				this.state.$.phase = 'running';
+				this.state.$.playerLeft.score = 0;
+				this.state.$.playerRight.score = 0;
 				break;
 		}
 	}
