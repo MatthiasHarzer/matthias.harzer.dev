@@ -172,6 +172,7 @@ class SinglePlayerStrategy extends GameStrategy {
 				this.resetBall();
 				this.state.$.phase = 'running';
 				this.state.$.playerLeft.score = 0;
+				this.state.$.playerRight.score = 0;
 				break;
 		}
 	}
