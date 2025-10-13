@@ -86,9 +86,9 @@ type TerminalItem =
 
 type TerminalResponse = TerminalItem[];
 
-type TerminalFunction = (
-	...args: string[]
-) => TerminalResponse | null | Promise<TerminalResponse | null>;
+type Awaitable<T> = (...args: string[]) => T | Promise<T>;
+
+type TerminalFunction = Awaitable<TerminalResponse | null>;
 
 interface Command {
 	name: string;
@@ -97,6 +97,7 @@ interface Command {
 	isHidden?: boolean;
 	noHelp?: boolean;
 	provideHelpDetails?(terminal: Terminal): TerminalFunction;
+	provideSuggestions?(...args: string[]): string[] | Promise<string[]>;
 }
 
 const text = (text: string): TerminalText => ({ type: 'text', text });

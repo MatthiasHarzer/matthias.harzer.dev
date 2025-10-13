@@ -1,5 +1,6 @@
 import { html, type TemplateResult } from 'lit';
 import type { Terminal } from '../../../Terminal.ts';
+import { treeSuggestions } from '../../suggestionsutil.ts';
 import {
 	type Command,
 	component,
@@ -77,6 +78,11 @@ class PongCommand implements Command {
 			}
 		};
 	}
+
+	provideSuggestions = treeSuggestions({
+		vs: {},
+		'': {},
+	});
 }
 
 const pong: Command = new PongCommand();
