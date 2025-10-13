@@ -1,6 +1,7 @@
 import { configService } from '../../services/config.ts';
 import type { BaseObject } from '../../services/reactive-object.ts';
 import type { Terminal } from '../../Terminal.ts';
+import { treeSuggestions } from '../suggestionsutil.ts';
 import {
 	button,
 	type Command,
@@ -10,6 +11,14 @@ import {
 	mentionCommandName,
 	text,
 } from '../terminal.ts';
+
+const configKeys = Object.keys(configService.value);
+
+const suggestionsTree = {
+	set: Object.fromEntries(configKeys.map(key => [key, {}])),
+	get: Object.fromEntries(configKeys.map(key => [key, {}])),
+	list: {},
+};
 
 const config: Command = {
 	name: 'config',
@@ -144,6 +153,7 @@ const config: Command = {
 					return [text('No additional help available for this action.')];
 			}
 		},
+	provideSuggestions: treeSuggestions(suggestionsTree),
 };
 
 export default config;

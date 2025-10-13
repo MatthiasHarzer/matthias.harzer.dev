@@ -44,9 +44,9 @@ export class TerminalInput extends Component {
 		this.#inputRef.value?.focus();
 	}
 
-	handleSuggestions() {
+	async handleSuggestions() {
 		if (this.#suggestionIndex === -1) {
-			this.#suggestions = getSuggestions(this.value);
+			this.#suggestions = await getSuggestions(this.value);
 		}
 		if (this.#suggestions.length === 0) {
 			return;
