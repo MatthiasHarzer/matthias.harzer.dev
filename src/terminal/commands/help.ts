@@ -28,6 +28,17 @@ class HelpCommand implements Command {
 	description = 'Lists all available commands';
 	isHidden = false;
 	noHelp = false;
+	allCommands: Command[] = [];
+
+	setAllCommands(commands: Command[]) {
+		this.allCommands = commands;
+	}
+
+	#findCommand(commandName: string): Command | null {
+		return (
+			this.allCommands.find(cmd => cmd.name.toLowerCase() === commandName.toLowerCase()) ?? null
+		);
+	}
 
 	#overview(terminal: Terminal): TerminalResponse {
 		const commandItems: TerminalItem[] = [text('Available commands:'), linebreak(1)];
@@ -110,8 +121,29 @@ class HelpCommand implements Command {
 			return [];
 		};
 	}
+
+	async provideSuggestions(...args: string[]): Promise<string[]> {
+		if (args.length === 0) {
+			return this.allCommands.map(cmd => cmd.name);
+		}
+
+		const subCommand = this.#findCommand(args[0]);
+		if (!subCommand) {
+			const prefix = args[0].toLowerCase();
+			return this.allCommands
+				.map(cmd => cmd.name)
+				.filter(name => name.toLowerCase().startsWith(prefix));
+		}
+
+		const commandArgs = args.toSpliced(0, 1);
+		if (!subCommand.provideSuggestions) return [];
+
+		const subCommandSuggestions = await subCommand.provideSuggestions(...commandArgs);
+
+		return subCommandSuggestions.map(s => `${subCommand.name} ${s}`);
+	}
 }
 
-const help: Command = new HelpCommand();
+const help = new HelpCommand();
 
 export default help;
