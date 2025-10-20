@@ -6,7 +6,7 @@
 		"@lit/localize": "0.12.2",
 		"@lit/localize-tools": "0.8.0",
 		"@lit/task": "1.0.3",
-		"esbuild": "0.25.10",
+		"esbuild": "0.25.11",
 		"lit": "3.3.1",
 		"typescript": "5.9.3"
 	},
